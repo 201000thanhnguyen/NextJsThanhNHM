@@ -224,6 +224,7 @@ export default function WorkForm() {
               <input
                 type="number"
                 name="amount"
+                min={0}
                 value={formWorkPay.amount}
                 onChange={handleChangeWorkPay}
                 className="mt-1 block w-full border-1 border-gray-500 rounded px-3 py-2"
