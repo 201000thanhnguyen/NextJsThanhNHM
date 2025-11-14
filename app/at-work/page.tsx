@@ -14,7 +14,7 @@ interface WorkFormState {
 
 interface WorkPay {
   payDate: string;
-  amount: number;
+  amount: number | any;
 }
 
 const WORK_SHIFTS: WorkShift[] = ["6h30", "15h30", "17h30"];
@@ -59,7 +59,7 @@ export default function WorkForm() {
     const { name, value, type } = e.target;
 
     if (type === "number") {
-      setFormWorkPay({ ...formWorkPay, [name]: Number(parseInt(value)) });
+      setFormWorkPay({ ...formWorkPay, [name]: Number(parseInt(value)) ? parseInt(value) : '' });
     } else {
       setFormWorkPay({ ...formWorkPay, [name]: value });
     }
