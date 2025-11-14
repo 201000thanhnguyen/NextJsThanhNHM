@@ -30,7 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Nav />
-        <main style={{ paddingTop: "4rem", minHeight: "calc(100vh - 2rem)" }}>{children}</main>
+        <main style={{ paddingTop: "4rem", minHeight: "calc(99vh - 2rem)" }}>{children}</main>
         <Footer />
       </body>
     </html>

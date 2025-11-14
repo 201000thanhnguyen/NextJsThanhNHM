@@ -13,14 +13,14 @@ interface NavItem {
 }
 
 export default function Nav() {
+ 
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
   const links: NavItem[] = [
     { href: "/", label: "Home" },
     { href: "/about", label: "About" },
-    { href: "/blog", label: "Blog" },
-    { href: "/contact", label: "Contact" },
+    { href: "/at-work", label: "Atwork" },
   ];
 
   return (
@@ -37,17 +37,18 @@ export default function Nav() {
 
           {/* Desktop links */}
           <div className="hidden md:flex md:items-center md:space-x-6">
-            {links.map((l) => (
-              <NavLink key={l.href} href={l.href} label={l.label} active={pathname === l.href} />
+            {
+            links.map((l) => (
+              <NavLink key={l.href + '' + l.label} href={l.href} label={l.label} active={pathname === l.href} />
             ))}
           </div>
 
           {/* Right actions */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            <Link href="/login" className="px-4 py-2 rounded-md text-sm font-medium bg-gray-300 border border-transparent hover:bg-gray-100 shadow-lg shadow-gray-500/50">
+            <Link href="/login" className="px-4 py-2 rounded-md text-sm font-medium bg-gray-300 border border-transparent lg:shadow-md shadow-gray-500/50 hover:bg-gray-200 hover:shadow-lg hover:shadow-gray-400">
               Sign in
             </Link>
-            <Link href="/signup" className="px-4 py-2 rounded-md text-sm font-medium bg-indigo-500 text-white hover:opacity-95 shadow-lg shadow-indigo-500/50">
+            <Link href="/signup" className="px-4 py-2 rounded-md text-sm font-medium bg-indigo-500 text-white lg:shadow-md lg:shadow-indigo-400 hover:bg-pink-400 hover:shadow-lg hover:shadow-pink-400">
               Sign up
             </Link>
           </div>
@@ -76,7 +77,7 @@ export default function Nav() {
               ))}
             </div>
             <div className="mt-3 border-t pt-3 flex flex-col space-y-2">
-              <Link href="/login" className="block px-3 py-2 rounded-md text-base font-medium">
+              <Link href="/login" className="block px-3 py-2 rounded-md text-base font-medium bg-gray-300 text-center">
                 Sign in
               </Link>
               <Link href="/signup" className="block px-3 py-2 rounded-md font-medium bg-indigo-600 text-white text-center">
@@ -98,8 +99,10 @@ function NavLink({ href, label, active }: NavLinkProps) {
   return (
     <Link
       href={href}
-      className={`px-3 py-2 rounded-md text-sm text-white font-medium bg-indigo-500 shadow-lg shadow-indigo-500/50 ${
-        active ? "text-indigo-600 underline decoration-indigo-200" : "text-gray-700 hover:text-gray-900"
+      className={`px-3 py-2 rounded-md text-sm text-white font-medium bg-indigo-500 shadow-md shadow-indigo-500/50 ${
+        active
+          ? "underline lg:shadow-lg lg:shadow-pink-400 lg:bg-pink-400"
+          : "text-gray-700 hover:underline hover:bg-pink-400 hover:shadow-lg hover:shadow-pink-400"
       }`}
     >
       {label}
@@ -122,3 +125,4 @@ function MobileLink({ href, label, active, onClick }: MobileLinkProps) {
     </Link>
   );
 }
+
