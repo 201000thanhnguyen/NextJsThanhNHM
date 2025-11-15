@@ -44,6 +44,7 @@ export default function PayForm({ value, onChange, onSubmit, errors }: PayFormPr
               value={value.amount as any}
               onChange={onChange}
               className="mt-1 block w-full border-1 border-gray-500 rounded px-3 py-2"
+              required
             />
             {errors?.amount && <p className="text-sm text-red-500 mt-1">{errors.amount}</p>}
           </div>

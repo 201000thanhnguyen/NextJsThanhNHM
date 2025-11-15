@@ -13,8 +13,9 @@ export default function useWorkForm() {
   });
 
   const [formWorkPay, setFormWorkPay] = useState<WorkPay>({
-    payDate: "",
-    amount: 0,
+  payDate: "",
+  // keep amount empty by default so the field is required
+  amount: "",
   });
 
   const [formErrors, setFormErrors] = useState<WorkFormErrors>({});
@@ -69,16 +70,24 @@ export default function useWorkForm() {
 
   const handleSubmitWorkPay = (e: React.FormEvent) => {
     e.preventDefault();
-  const errs: WorkPayErrors = {};
-  if (!formWorkPay.payDate) errs.payDate = "Please select a pay date.";
-  const amount = typeof formWorkPay.amount === "string" ? parseInt(formWorkPay.amount || "0") : formWorkPay.amount;
-  if (isNaN(Number(amount)) || Number(amount) < 0) errs.amount = "Amount must be a non-negative number.";
+    const errs: WorkPayErrors = {};
+    if (!formWorkPay.payDate) errs.payDate = "Please select a pay date.";
 
-  setPayErrors(errs);
-  if (Object.keys(errs).length > 0) return;
+    // Enforce required (no empty) and non-negative numeric amount
+    if (formWorkPay.amount === "" || formWorkPay.amount === null || formWorkPay.amount === undefined) {
+      errs.amount = "Amount is required.";
+    } else {
+      const amountNum = typeof formWorkPay.amount === "string" ? parseInt(formWorkPay.amount) : formWorkPay.amount;
+      if (Number.isNaN(amountNum) || Number(amountNum) < 0) {
+        errs.amount = "Amount must be a non-negative number.";
+      }
+    }
 
-  // eslint-disable-next-line no-alert
-  alert(JSON.stringify(formWorkPay, null, 2));
+    setPayErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
+    // eslint-disable-next-line no-alert
+    alert(JSON.stringify(formWorkPay, null, 2));
   };
 
   return {
