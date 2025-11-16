@@ -2,24 +2,26 @@
 
 import { useState } from "react";
 import type { WorkFormState, WorkPay, WorkShift, WorkFormErrors, WorkPayErrors } from "../types";
-import { WORK_SHIFTS } from "../types";
+import { TODAY, WORK_SHIFTS } from "../types";
 
 export default function useWorkForm() {
+
   const [formWorkForm, setFormWorkForm] = useState<WorkFormState>({
-    workingDays: "",
+    workingDays: `${TODAY}`,
     workStatus: "Working",
     workShift: [],
     note: "",
   });
 
   const [formWorkPay, setFormWorkPay] = useState<WorkPay>({
-  payDate: "",
-  // keep amount empty by default so the field is required
-  amount: "",
+    payDate: `${TODAY}`,
+    // keep amount empty by default so the field is required
+    amount: "",
   });
 
   const [formErrors, setFormErrors] = useState<WorkFormErrors>({});
   const [payErrors, setPayErrors] = useState<WorkPayErrors>({});
+  const [payLoading, setPayLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -68,7 +70,7 @@ export default function useWorkForm() {
   alert(JSON.stringify(formWorkForm, null, 2));
   };
 
-  const handleSubmitWorkPay = (e: React.FormEvent) => {
+  const handleSubmitWorkPay = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: WorkPayErrors = {};
     if (!formWorkPay.payDate) errs.payDate = "Please select a pay date.";
@@ -86,8 +88,40 @@ export default function useWorkForm() {
     setPayErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    // eslint-disable-next-line no-alert
-    alert(JSON.stringify(formWorkPay, null, 2));
+    // send to NestJS API
+    setPayLoading(true);
+    try {
+      const resp = await fetch("http://localhost:3001/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formWorkPay),
+      });
+
+      if (!resp.ok) {
+        // try to parse error body
+        let errText = `Request failed with status ${resp.status}`;
+        try {
+          const json = await resp.json();
+          if (json && json.message) errText = json.message;
+        } catch (_) {
+          // ignore json parse
+        }
+        // set a generic error on amount to surface to user (could be improved)
+        setPayErrors({ amount: errText });
+        return;
+      }
+
+      const data = await resp.json();
+      // on success: reset pay form and errors
+      setFormWorkPay({ payDate: `${TODAY}`, amount: "" });
+      setPayErrors({});
+      // eslint-disable-next-line no-alert
+      alert(`Payment saved: ${JSON.stringify(data)}`);
+    } catch (err: any) {
+      setPayErrors({ amount: err?.message || String(err) });
+    } finally {
+      setPayLoading(false);
+    }
   };
 
   return {
@@ -101,6 +135,7 @@ export default function useWorkForm() {
     handleSubmitWorkPay,
   formErrors,
   payErrors,
-    WORK_SHIFTS,
+  payLoading,
+  WORK_SHIFTS,
   };
 }

@@ -8,9 +8,10 @@ interface PayFormProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   errors?: WorkPayErrors;
+  loading?: boolean;
 }
 
-export default function PayForm({ value, onChange, onSubmit, errors }: PayFormProps) {
+export default function PayForm({ value, onChange, onSubmit, errors, loading }: PayFormProps) {
   return (
     <div className="md:col-span-1 grid grid-cols-1 md:grid-cols-1 gap-6 p-6 shadow-lg bg-white rounded space-y-4 mt-6 lg:mt-8">
       <form className="bg-white rounded space-y-4" onSubmit={onSubmit}>
@@ -53,9 +54,10 @@ export default function PayForm({ value, onChange, onSubmit, errors }: PayFormPr
         <div className="flex justify-center mt-2">
           <button
             type="submit"
-            className="bg-indigo-500 shadow-md shadow-indigo-400 text-white px-8 py-2 rounded font-medium transition hover:bg-pink-400 hover:shadow-lg hover:shadow-pink-400"
+            disabled={loading}
+            className={`bg-indigo-500 shadow-md shadow-indigo-400 text-white px-8 py-2 rounded font-medium transition hover:bg-pink-400 hover:shadow-lg hover:shadow-pink-400 ${loading ? 'opacity-70 cursor-wait' : ''}`}
           >
-            Save
+            {loading ? 'Saving...' : 'Save'}
           </button>
         </div>
       </form>
