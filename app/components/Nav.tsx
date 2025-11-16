@@ -10,18 +10,34 @@ import { usePathname } from "next/navigation";
 interface NavItem {
   href: string;
   label: string;
+  subItem?: NavSubItem[];
+}
+
+interface NavSubItem extends NavItem {
+  active: boolean;
+  subMenu?: NavItem[];
 }
 
 export default function Nav() {
  
   const [open, setOpen] = useState(false);
+  const [mobileSubOpen, setMobileSubOpen] = useState<Record<string, boolean>>({});
   const pathname = usePathname();
+
+  const subLinksAtwork: NavSubItem[] = [
+    { href: "/at-work", label: "Atwork", active: pathname === "/at-work" },
+    { href: "/pay-form", label: "PayForm", active: pathname === "/pay-form" },
+    { href: "/summary-salary", label: "SummarySalary", active: pathname === "/summary-salary" },
+    { href: "/work-form", label: "WorkForm", active: pathname === "/work-form" }
+  ];
 
   const links: NavItem[] = [
     { href: "/", label: "Home" },
     { href: "/about", label: "About" },
-    { href: "/at-work", label: "Atwork" },
+    { href: "/at-work", label: "Atwork", subItem: subLinksAtwork},
   ];
+
+  
 
   return (
     <header className="bg-white shadow-lg shadow-gray-400/50 fixed w-full z-10">
@@ -39,7 +55,7 @@ export default function Nav() {
           <div className="hidden md:flex md:items-center md:space-x-6">
             {
             links.map((l) => (
-              <NavLink key={l.href + '' + l.label} href={l.href} label={l.label} active={pathname === l.href} />
+              <NavLink key={l.href + '' + l.label} href={l.href} label={l.label} active={pathname === l.href} subItem={l.subItem} />
             ))}
           </div>
 
@@ -73,7 +89,37 @@ export default function Nav() {
           <div className="md:hidden py-2">
             <div className="space-y-1">
               {links.map((l) => (
-                <MobileLink key={l.href} href={l.href} label={l.label} active={pathname === l.href} onClick={() => setOpen(false)} />
+                l.subItem && l.subItem.length > 0 ? (
+                  <div key={l.href} className="space-y-1">
+                    <button
+                      onClick={() => setMobileSubOpen((prev) => ({ ...prev, [l.href]: !prev[l.href] }))}
+                      aria-expanded={!!mobileSubOpen[l.href]}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      <span>{l.label}</span>
+                      <svg className={`h-5 w-5 transform transition-transform ${mobileSubOpen[l.href] ? 'rotate-90' : ''}`} viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6L14 10L6 14V6Z" />
+                      </svg>
+                    </button>
+
+                    {mobileSubOpen[l.href] && (
+                      <div className="pl-4 space-y-1">
+                        {l.subItem.map((s) => (
+                          <Link
+                            key={s.href}
+                            href={s.href}
+                            onClick={() => setOpen(false)}
+                            className={`block px-3 py-2 rounded-md text-base font-medium ${pathname === s.href ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}`}
+                          >
+                            {s.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <MobileLink key={l.href} href={l.href} label={l.label} active={pathname === l.href} onClick={() => setOpen(false)} />
+                )
               ))}
             </div>
             <div className="mt-3 border-t pt-3 flex flex-col space-y-2">
@@ -95,18 +141,48 @@ interface NavLinkProps extends NavItem {
   active: boolean;
 }
 
-function NavLink({ href, label, active }: NavLinkProps) {
+function NavLink({ href, label, active, subItem }: NavLinkProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // If there is no submenu, render a simple Link
+  if (!subItem || subItem.length === 0) {
+    return (
+      <Link
+        href={href}
+        className={`px-3 py-2 rounded-md text-sm text-white font-medium bg-indigo-500 shadow-md shadow-indigo-500/50 ${
+          active
+            ? "underline lg:shadow-lg lg:shadow-pink-400 lg:bg-pink-400"
+            : "text-gray-700 hover:underline hover:bg-pink-400 hover:shadow-lg hover:shadow-pink-400"
+        }`}
+      >
+        {label}
+      </Link>
+    );
+  }
+
+  // Render a dropdown for items with subItem
   return (
-    <Link
-      href={href}
-      className={`px-3 py-2 rounded-md text-sm text-white font-medium bg-indigo-500 shadow-md shadow-indigo-500/50 ${
-        active
-          ? "underline lg:shadow-lg lg:shadow-pink-400 lg:bg-pink-400"
-          : "text-gray-700 hover:underline hover:bg-pink-400 hover:shadow-lg hover:shadow-pink-400"
-      }`}
-    >
-      {label}
-    </Link>
+    <div className="relative" onMouseLeave={() => setMenuOpen(false)}>
+      <button
+        onMouseEnter={() => setMenuOpen(true)}
+        onClick={() => setMenuOpen((s) => !s)}
+        aria-haspopup="true"
+        aria-expanded={menuOpen}
+        className={`px-3 py-2 rounded-md text-sm font-medium ${active ? 'text-gray-900' : 'text-gray-700'} underline lg:shadow-lg lg:shadow-pink-400 lg:bg-pink-400`}
+      >
+        {label}
+      </button>
+
+      {menuOpen && (
+        <div className="absolute left-0 w-48 bg-white border rounded shadow-lg z-20">
+          {subItem.map((s) => (
+            <Link key={s.href} href={s.href} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              {s.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
