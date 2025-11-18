@@ -24,10 +24,22 @@ export default function Nav() {
   const [mobileSubOpen, setMobileSubOpen] = useState<Record<string, boolean>>({});
   const pathname = usePathname();
 
+  // helper to determine if a link (top-level) should be considered active for mobile
+  const isActive = (href: string, sub?: NavSubItem[]) => {
+    if (!href) return false;
+    if (href === "/") return pathname === "/";
+    if (pathname === href) return true;
+    // treat nested paths under the href as active (e.g. /at-work/summary-salary -> /at-work active)
+    if (pathname.startsWith(href.endsWith("/") ? href : href + "/")) return true;
+    // also consider if any subitem exactly matches pathname
+    if (sub && sub.some(s => pathname === s.href || pathname.startsWith(s.href + "/"))) return true;
+    return false;
+  };
+
   const subLinksAtwork: NavSubItem[] = [
     { href: "/at-work", label: "Atwork", active: pathname === "/at-work" },
     { href: "/pay-form", label: "PayForm", active: pathname === "/pay-form" },
-    { href: "/summary-salary", label: "SummarySalary", active: pathname === "/summary-salary" },
+    { href: "/at-work/summary-salary", label: "SummarySalary", active: pathname === "/at-work/summary-salary" },
     { href: "/work-form", label: "WorkForm", active: pathname === "/work-form" }
   ];
 
@@ -55,7 +67,7 @@ export default function Nav() {
           <div className="hidden md:flex md:items-center md:space-x-6">
             {
             links.map((l) => (
-              <NavLink key={l.href + '' + l.label} href={l.href} label={l.label} active={pathname === l.href} subItem={l.subItem} />
+              <NavLink key={l.href + '' + l.label} href={l.href} label={l.label} active={pathname === l.href} fullLink={pathname} subItem={l.subItem} />
             ))}
           </div>
 
@@ -91,10 +103,11 @@ export default function Nav() {
               {links.map((l) => (
                 l.subItem && l.subItem.length > 0 ? (
                   <div key={l.href} className="space-y-1">
+                    {/** highlight parent when any child or nested path is active */}
                     <button
                       onClick={() => setMobileSubOpen((prev) => ({ ...prev, [l.href]: !prev[l.href] }))}
                       aria-expanded={!!mobileSubOpen[l.href]}
-                      className="w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 ${isActive(l.href, l.subItem) ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'}`}
                     >
                       <span>{l.label}</span>
                       <svg className={`h-5 w-5 transform transition-transform ${mobileSubOpen[l.href] ? 'rotate-90' : ''}`} viewBox="0 0 20 20" fill="none" stroke="currentColor">
@@ -118,7 +131,7 @@ export default function Nav() {
                     )}
                   </div>
                 ) : (
-                  <MobileLink key={l.href} href={l.href} label={l.label} active={pathname === l.href} onClick={() => setOpen(false)} />
+                  <MobileLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} onClick={() => setOpen(false)} />
                 )
               ))}
             </div>
@@ -139,10 +152,20 @@ export default function Nav() {
 
 interface NavLinkProps extends NavItem {
   active: boolean;
+  fullLink?: string;
 }
 
-function NavLink({ href, label, active, subItem }: NavLinkProps) {
+function NavLink({ href, label, active, fullLink, subItem }: NavLinkProps) {
+  
   const [menuOpen, setMenuOpen] = useState(false);
+  const str = fullLink || "";
+
+  const parts = str.split("/").filter(Boolean); // ["at-work", "summary-salary"]
+
+  const resultPath = parts.map(p => `/${p}`);
+  if (str == "/"){
+    resultPath.push("/");
+  };
 
   // If there is no submenu, render a simple Link
   if (!subItem || subItem.length === 0) {
@@ -150,7 +173,7 @@ function NavLink({ href, label, active, subItem }: NavLinkProps) {
       <Link
         href={href}
         className={`px-3 py-2 rounded-md text-sm text-white font-medium bg-indigo-500 shadow-md shadow-indigo-500/50 ${
-          active
+          href === resultPath[0]
             ? "underline lg:shadow-lg lg:shadow-pink-400 lg:bg-pink-400"
             : "text-gray-700 hover:underline hover:bg-pink-400 hover:shadow-lg hover:shadow-pink-400"
         }`}
@@ -164,11 +187,15 @@ function NavLink({ href, label, active, subItem }: NavLinkProps) {
   return (
     <div className="relative" onMouseLeave={() => setMenuOpen(false)}>
       <button
-        onMouseEnter={() => setMenuOpen(true)}
-        onClick={() => setMenuOpen((s) => !s)}
+        //onMouseEnter={() => setMenuOpen(true)} // hover to open dropdown menu
+        onClick={() => setMenuOpen((s) => !s)} // click to open dropdown menu
         aria-haspopup="true"
         aria-expanded={menuOpen}
-        className={`px-3 py-2 rounded-md text-sm font-medium ${active ? 'text-gray-900' : 'text-gray-700'} underline lg:shadow-lg lg:shadow-pink-400 lg:bg-pink-400`}
+        className={`px-3 py-2 rounded-md text-sm text-white font-medium bg-indigo-500 shadow-md shadow-indigo-500/50 
+            ${href === resultPath[0] 
+              ? 'text-gray-900 underline lg:shadow-lg lg:shadow-pink-400 lg:bg-pink-400' 
+              : 'text-gray-700'}
+          `}
       >
         {label}
       </button>
@@ -176,7 +203,12 @@ function NavLink({ href, label, active, subItem }: NavLinkProps) {
       {menuOpen && (
         <div className="absolute left-0 w-48 bg-white border rounded shadow-lg z-20">
           {subItem.map((s) => (
-            <Link key={s.href} href={s.href} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <Link key={s.href} href={s.href} 
+                  className={`block px-4 py-2 text-sm text-gray-700 hover:bg-pink-300
+                  ${s.href === (resultPath[0] ?? "")+(resultPath[1] ?? "") 
+                    ? 'lg:bg-pink-400' 
+                    : 'text-gray-700'}
+                  `}>
               {s.label}
             </Link>
           ))}
@@ -195,7 +227,10 @@ function MobileLink({ href, label, active, onClick }: MobileLinkProps) {
     <Link
       href={href}
       onClick={onClick}
-      className={`block px-3 py-2 rounded-md text-base font-medium ${active ? "bg-indigo-50 text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+      className={`block px-3 py-2 rounded-md text-base font-medium 
+        ${active 
+          ? "bg-indigo-50 text-indigo-700" 
+          : "text-gray-700 hover:bg-gray-50"}`}
     >
       {label}
     </Link>
