@@ -194,7 +194,7 @@ function NavLink({ href, label, active, fullLink, subItem }: NavLinkProps) {
         className={`px-3 py-2 rounded-md text-sm text-white font-medium bg-indigo-500 shadow-md shadow-indigo-500/50 
             ${href === resultPath[0] 
               ? 'text-gray-900 underline lg:shadow-lg lg:shadow-pink-400 lg:bg-pink-400' 
-              : 'text-gray-700'}
+              : 'text-gray-700 hover:underline hover:bg-pink-400 hover:shadow-lg hover:shadow-pink-400'}
           `}
       >
         {label}

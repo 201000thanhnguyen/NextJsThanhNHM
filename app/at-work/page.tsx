@@ -10,7 +10,7 @@ export default function WorkFormPage() {
   const {
     formWorkForm,
     formWorkPay,
-    handleChange,
+    handleChangeWorkForm,
     handleChangeWorkPay,
     handleSubmitWorkForm,
     handleSubmitWorkPay,
@@ -46,7 +46,7 @@ export default function WorkFormPage() {
         </div>
       </SummaryCard>
 
-  <WorkForm value={formWorkForm} onChange={handleChange} onSubmit={handleSubmitWorkForm} errors={formErrors} />
+  <WorkForm value={formWorkForm} onChange={handleChangeWorkForm} onSubmit={handleSubmitWorkForm} errors={formErrors} disabled={formWorkForm.workStatus === "Off"}/>
 
   <PayForm value={formWorkPay} onChange={handleChangeWorkPay} onSubmit={handleSubmitWorkPay} errors={payErrors} />
     </div>

@@ -23,10 +23,28 @@ export default function useWorkForm() {
   const [payErrors, setPayErrors] = useState<WorkPayErrors>({});
   const [payLoading, setPayLoading] = useState(false);
 
-  const handleChange = (
+  const handleChangeWorkForm = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
+
+    // Validate
+    const errs: WorkFormErrors = {};
+    if (name === "workStatus") {
+      const newStatus = value as WorkFormState["workStatus"];
+
+      // Nếu chuyển status => reset shift
+      setFormWorkForm({
+        ...formWorkForm,
+        workStatus: newStatus,
+        workShift: [],
+      });
+
+      if (newStatus === "Working" && formWorkForm.workShift.length === 0) {
+        errs.workShift = "Select at least one shift.";
+      }
+
+    }
 
     if (name === "workShift") {
       const checked = (e.target as HTMLInputElement).checked;
@@ -42,6 +60,10 @@ export default function useWorkForm() {
     } else {
       setFormWorkForm({ ...formWorkForm, [name]: value } as any);
     }
+
+    setFormErrors(errs);
+    return;
+
   };
 
   const handleChangeWorkPay = (
@@ -59,15 +81,20 @@ export default function useWorkForm() {
 
   const handleSubmitWorkForm = (e: React.FormEvent) => {
     e.preventDefault();
-  const errs: WorkFormErrors = {};
-  if (!formWorkForm.workingDays) errs.workingDays = "Please select working day(s).";
-  if (formWorkForm.workShift.length === 0) errs.workShift = "Select at least one shift.";
+    const errs: WorkFormErrors = {};
+    if (!formWorkForm.workingDays) errs.workingDays = "Please select working day(s).";
 
-  setFormErrors(errs);
-  if (Object.keys(errs).length > 0) return;
+    if (formWorkForm.workStatus === "Working" && formWorkForm.workShift.length === 0) {
+      errs.workShift = "Select at least one shift.";
+    } else {
+      delete errs.workShift;
+    }
 
-  // eslint-disable-next-line no-alert
-  alert(JSON.stringify(formWorkForm, null, 2));
+    setFormErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
+    // eslint-disable-next-line no-alert
+    alert(JSON.stringify(formWorkForm, null, 2));
   };
 
   const handleSubmitWorkPay = async (e: React.FormEvent) => {
@@ -129,13 +156,13 @@ export default function useWorkForm() {
     setFormWorkForm,
     formWorkPay,
     setFormWorkPay,
-    handleChange,
+    handleChangeWorkForm,
     handleChangeWorkPay,
     handleSubmitWorkForm,
     handleSubmitWorkPay,
-  formErrors,
-  payErrors,
-  payLoading,
-  WORK_SHIFTS,
+    formErrors,
+    payErrors,
+    payLoading,
+    WORK_SHIFTS,
   };
 }

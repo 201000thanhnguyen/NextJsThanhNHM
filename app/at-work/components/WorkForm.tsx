@@ -8,10 +8,11 @@ interface WorkFormProps {
   value: WorkFormState;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
+  disabled?: boolean;
   errors?: WorkFormErrors;
 }
 
-export default function WorkForm({ value, onChange, onSubmit, errors }: WorkFormProps) {
+export default function WorkForm({ value, onChange, onSubmit, errors, disabled }: WorkFormProps) {
   return (
     <form className="md:col-span-2 p-6 shadow-lg bg-white rounded space-y-4 mt-6 lg:mt-8" onSubmit={onSubmit}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
@@ -81,6 +82,7 @@ export default function WorkForm({ value, onChange, onSubmit, errors }: WorkForm
                   name="workShift"
                   value={shift}
                   checked={value.workShift.includes(shift)}
+                  disabled={disabled}
                   onChange={onChange}
                 />
                 <span>{shift}</span>
