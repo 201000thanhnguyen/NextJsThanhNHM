@@ -214,7 +214,7 @@ export default function LunarNewYearPage() {
         </div>
 
         <p className="text-lg opacity-90">
-          Chúc mừng năm mới<br />
+          Chúc bạn năm mới<br />
           <b>an nhiên trong tâm – vững bước ngoài đời</b>
         </p>
       </div>
