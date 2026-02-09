@@ -201,7 +201,7 @@ export default function LunarNewYearPage() {
           show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
-        <h1 className="text-5xl md:text-7xl font-extrabold mb-4 drop-shadow-lg">
+        <h1 className="text-3xl md:text-7xl font-extrabold mb-4 drop-shadow-lg">
           🧧 TẾT NGUYÊN ĐÁN 🧧
         </h1>
 
