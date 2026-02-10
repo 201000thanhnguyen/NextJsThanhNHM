@@ -179,7 +179,16 @@ export default function LunarNewYearPage() {
 
   return (
     <main
-      className={`${beVietnam.className} relative min-h-screen overflow-hidden flex items-center justify-center text-white`}
+      className={`
+        ${beVietnam.className}
+        relative
+        min-h-[100dvh]
+        overflow-hidden
+        flex
+        items-center
+        justify-center
+        text-white
+      `}
       style={{
         backgroundImage: "url('/danang1.png')",
         backgroundSize: 'cover',
