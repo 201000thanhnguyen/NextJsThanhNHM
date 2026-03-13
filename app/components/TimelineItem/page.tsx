@@ -37,7 +37,7 @@ export default function TimelineItem({
   const dotScale = useTransform(distance, [0, 400], [1.3, 0.8]);
 
   return (
-    <div className="relative w-full flex justify-center py-32">
+    <div className="relative w-full flex justify-center py-28">
 
       {/* Horizontal Line */}
       <motion.div
