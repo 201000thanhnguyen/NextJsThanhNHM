@@ -48,6 +48,7 @@ export default function Home() {
           (To be filled in the future)
         </TimelineItem>
 
+        <div className="pb-20"></div>
       </div>
     </main>
   );
