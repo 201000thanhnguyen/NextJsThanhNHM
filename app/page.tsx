@@ -11,21 +11,41 @@ export default function Home() {
 
       <div className="flex flex-col items-center gap-40 pt-40">
 
-        <TimelineItem title="About Me">
-          I'm a software engineer.
-          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Sapiente odio, nobis similique nulla atque possimus voluptas veniam est saepe nihil perferendis, modi blanditiis rem soluta doloribus sequi, odit aliquid impedit!
+        <TimelineItem title="🧑 About Me">
+          <b>Nguyen Hoang Minh Thanh</b>
+          <br /><b>Software Engineer</b>
+          <br /><b>Da Nang, Vietnam 📍</b>
+          <br /><b>201000thanhnguyen@gmail.com 📧</b>
         </TimelineItem>
 
-        <TimelineItem title="Skills">
-          Next.js, Node.js, DevOps...
-          <br />Lorem ipsum dolor sit amet consectetur adipisicing elit. Sapiente odio, nobis similique nulla atque possimus voluptas veniam est saepe nihil perferendis, modi blanditiis rem soluta doloribus sequi, odit aliquid impedit!
+        <TimelineItem title="🎓 Education">
+          <b>2018 – 2021:</b>
+          <br />&nbsp;&nbsp;&nbsp;&nbsp; Vietnam – Korea University of Information and Communication Technology
+          <br /><b>2021 – 2022:</b>
+          <br /> &nbsp;&nbsp;&nbsp;&nbsp; Internship - IOTLink
+          <br /><b>2022 – Present:</b>
+          <br /> &nbsp;&nbsp;&nbsp;&nbsp; FPT Software Da Nang
         </TimelineItem>
 
-        <TimelineItem title="Contact">
-          your@email.com
-          <>
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dolor non numquam sint ducimus libero nulla fugiat, nisi saepe ipsa? Provident impedit nesciunt explicabo laborum delectus sunt? Repudiandae atque fugiat nulla!
-          </>
+        <TimelineItem title="💻 Skills">
+          <b>Languages:</b>
+          <br />&nbsp;&nbsp;&nbsp;&nbsp; Java, JavaScript, TypeScript ..
+          <br /><b>Frameworks:</b>
+          <br /> &nbsp;&nbsp;&nbsp;&nbsp; Spring Framework, Next.js ..
+          <br /><b>Styling:</b>
+          <br /> &nbsp;&nbsp;&nbsp;&nbsp; TailwindCSS, Bootstrap
+          <br /><b>Dev tools:</b> 
+          <br /> &nbsp;&nbsp;&nbsp;&nbsp; IntelliJ IDEA, Eclipse, Visual Studio Code, Docker, Nginx, Git..
+          <br /><b>Database:</b> 
+          <br /> &nbsp;&nbsp;&nbsp;&nbsp; MySQL, Oracle  
+        </TimelineItem>
+
+        <TimelineItem title="🧠 Currently Learning">
+          <b>DevOps & CI/CD</b>
+        </TimelineItem>
+
+        <TimelineItem title="🏆 Achievements">
+          (To be filled in the future)
         </TimelineItem>
 
       </div>

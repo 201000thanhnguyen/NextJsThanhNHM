@@ -50,7 +50,7 @@ export default function TimelineItem({
             bg-white 
             origin-left 
             z-0
-            w-[calc(50%-394px)]
+            w-[calc(50%-444px)]
         "
       />
 
@@ -64,7 +64,7 @@ export default function TimelineItem({
       <motion.div
         ref={ref}
         style={{ opacity }}
-        className="relative bg-zinc-900 p-10 rounded-2xl w-[600px] text-center z-20 border border-white/20"
+        className="relative bg-zinc-900 p-10 rounded-2xl w-[700px] text-left z-20 border border-white/20"
       >
         <h2 className="text-2xl mb-4">{title}</h2>
         <p>{children}</p>
