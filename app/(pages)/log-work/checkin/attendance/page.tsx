@@ -9,8 +9,8 @@ import { buildMonthAttendance, getCurrentMonthValue } from "../date"
 import type { Attendance, Shift } from "../types"
 
 const API_BASE_URL = "http://localhost:3001"
-const SHIFTS_API = `${API_BASE_URL}/api/shifts`
-const ATTENDANCE_API = `${API_BASE_URL}/api/attendance`
+const SHIFTS_API = `/api/shifts`
+const ATTENDANCE_API = `/api/attendance`
 
 const getTodayDateValue = () => {
   const now = new Date()

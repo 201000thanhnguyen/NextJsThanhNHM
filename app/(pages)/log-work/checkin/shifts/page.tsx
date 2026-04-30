@@ -8,7 +8,7 @@ import { ShiftSection } from "../ShiftSection"
 import type { Shift, ShiftCreateInput } from "../types"
 
 const API_BASE_URL = "http://localhost:3001"
-const SHIFTS_API = `${API_BASE_URL}/api/shifts`
+const SHIFTS_API = `/api/shifts`
 
 async function fetchShifts(): Promise<Shift[]> {
   const res = await fetch(SHIFTS_API, { method: "GET" })

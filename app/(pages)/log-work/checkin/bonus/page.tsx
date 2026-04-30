@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react"
 import { getCurrentMonthValue } from "../date"
 
 const API_BASE_URL = "http://localhost:3001"
-const TRANSACTIONS_API = `${API_BASE_URL}/api/transactions`
+const TRANSACTIONS_API = `/api/transactions`
 
 type Transaction = {
   id: string
