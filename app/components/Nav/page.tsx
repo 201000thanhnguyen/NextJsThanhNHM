@@ -1,10 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [authed, setAuthed] = useState<boolean | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        if (!cancelled) setAuthed(res.ok);
+      } catch {
+        if (!cancelled) setAuthed(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } finally {
+      setAuthed(false);
+      router.push("/");
+      router.refresh();
+    }
+  }
 
   return (
     <nav className="bg-white sticky top-0 z-50">
@@ -65,6 +94,23 @@ export default function Navbar() {
             >
               Contact
             </Link>
+
+            {authed ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-800"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                href={`/login?next=${encodeURIComponent(pathname ?? "/log-work/checkin")}`}
+                className="rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-800"
+              >
+                Login
+              </Link>
+            )}
           </div>
 
           {/* Mobile button */}
@@ -120,6 +166,23 @@ export default function Navbar() {
             >
               Contact
             </Link>
+
+            {authed ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-800"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                href={`/login?next=${encodeURIComponent(pathname ?? "/log-work/checkin")}`}
+                className="rounded bg-gray-900 px-4 py-2 text-white text-center hover:bg-gray-800"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       )}
