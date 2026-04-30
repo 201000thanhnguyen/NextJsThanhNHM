@@ -18,7 +18,7 @@ function LoginInner() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/auth/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "include",
