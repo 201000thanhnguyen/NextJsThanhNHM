@@ -23,9 +23,42 @@ export default function Navbar() {
             <Link href="/" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
               Home
             </Link>
-            <Link href="/" className="text-gray-700 hover:text-blue-600">
-              Timekeeping
-            </Link>
+            <div className="relative group">
+              <button
+                type="button"
+                className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
+              >
+                LogWork
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              <div className="invisible absolute left-0 top-full min-w-40 rounded bg-white py-2 shadow-lg ring-1 ring-gray-200 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <Link
+                  href="/log-work/checkin"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                >
+                  Checkin
+                </Link>
+                <Link
+                  href="/log-work/overview"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                >
+                  Overview
+                </Link>
+              </div>
+            </div>
             <Link
               href="/"
               className="text-gray-700 hover:text-blue-600"
@@ -72,9 +105,15 @@ export default function Navbar() {
             <Link href="/" className="bg-blue-600 text-white p-2 rounded text-center">
               Home
             </Link>
-            <Link href="/" className="hover:bg-gray-100 p-2 rounded">
-              Timekeeping
-            </Link>
+            <div className="space-y-1">
+              <p className="px-2 text-sm font-medium text-gray-500">LogWork</p>
+              <Link href="/log-work/checkin" className="block hover:bg-gray-100 p-2 rounded">
+                Checkin
+              </Link>
+              <Link href="/log-work/overview" className="block hover:bg-gray-100 p-2 rounded">
+                Overview
+              </Link>
+            </div>
             <Link
               href="/"
               className="hover:bg-gray-100 p-2 rounded"
