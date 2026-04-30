@@ -14,7 +14,7 @@ export default function Navbar() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
+        const res = await fetch("http://localhost:3001/auth/me", { credentials: "include" });
         if (!cancelled) setAuthed(res.ok);
       } catch {
         if (!cancelled) setAuthed(false);
@@ -27,7 +27,7 @@ export default function Navbar() {
 
   async function handleLogout() {
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      await fetch("http://localhost:3001/auth/logout", { method: "POST", credentials: "include" });
     } finally {
       setAuthed(false);
       router.push("/");
