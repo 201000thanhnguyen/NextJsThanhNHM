@@ -13,6 +13,8 @@ export type ShiftCreateInput = {
   salary: number
 }
 
+export type ShiftUpdateInput = Partial<ShiftCreateInput>
+
 export type Attendance = {
   id?: string
   date: string

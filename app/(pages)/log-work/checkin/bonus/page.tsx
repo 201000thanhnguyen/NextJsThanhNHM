@@ -1,9 +1,18 @@
 ﻿"use client"
 
 import { FormEvent, useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
+import { Gift, Pencil, Plus, Trash2 } from "lucide-react"
 
 import { getCurrentMonthValue } from "../date"
 import { apiUrl } from "@/app/lib/api"
+import { PageHeader } from "@/app/components/PageHeader"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
 
 const TRANSACTIONS_API = apiUrl(`/api/transactions`)
 
@@ -150,8 +159,10 @@ export default function BonusPage() {
       }
       if (editingId) {
         await updateBonus(editingId, payload)
+        toast.success("Đã cập nhật thưởng/phụ cấp")
       } else {
         await createBonus(payload)
+        toast.success("Đã thêm thưởng/phụ cấp")
       }
       setTitle("")
       setAmount("")
@@ -161,6 +172,7 @@ export default function BonusPage() {
       setMonthValue(date.slice(0, 7))
     } catch (e) {
       setError(e instanceof Error ? e.message : "Loi khong xac dinh")
+      toast.error("Không thể lưu thưởng/phụ cấp")
     } finally {
       setSubmitting(false)
     }
@@ -191,148 +203,208 @@ export default function BonusPage() {
       setSubmitting(true)
       setError(null)
       await deleteBonus(id)
+      toast.success("Đã xóa thưởng/phụ cấp")
       if (editingId === id) {
         cancelEdit()
       }
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Loi khong xac dinh")
+      toast.error("Không thể xóa thưởng/phụ cấp")
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 max-w-3xl mx-auto space-y-4 text-gray-700">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Thuong / phu cap</h1>
-          <p className="text-sm text-gray-500">Nhap 4 thong tin va quan ly theo thang.</p>
-        </div>
-
-        <label className="text-sm text-gray-600">
-          Thang
-          <input
-            type="month"
-            value={monthValue}
-            onChange={e => setMonthValue(e.target.value)}
-            className="mt-1 block rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-800"
-          />
-        </label>
-      </div>
-
-      {loading && <div className="text-sm text-gray-500">Dang tai...</div>}
-      {error && <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700">{error}</div>}
-
-      <section className="rounded-lg bg-white p-4 shadow">
-        <h2 className="mb-3 font-semibold text-gray-800">
-          {editingId ? "Sua thuong / phu cap" : "Them thuong / phu cap"}
-        </h2>
-        <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-          <label className="text-sm text-gray-600 sm:col-span-2">
-            Tieu de
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800"
-              placeholder="Vi du: Phu cap xang"
-            />
-          </label>
-
-          <label className="text-sm text-gray-600">
-            So tien
-            <input
-              type="number"
-              min="0"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800"
-              placeholder="Nhap so tien"
-            />
-          </label>
-
-          <label className="text-sm text-gray-600">
-            Ngay nhan phu cap
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800"
-            />
-          </label>
-
-          <label className="text-sm text-gray-600 sm:col-span-2">
-            Ghi chu
-            <textarea
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              rows={3}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800"
-              placeholder="Ghi chu them (neu co)"
-            />
-          </label>
-
-          <div className="sm:col-span-2">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white disabled:bg-blue-300"
-            >
-              {submitting ? "Dang luu..." : editingId ? "Cap nhat" : "Luu thuong / phu cap"}
-            </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="ml-2 rounded-lg border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700"
-              >
-                Huy sua
-              </button>
-            )}
-          </div>
-        </form>
-      </section>
-
-      <section className="rounded-lg bg-white p-4 shadow">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-gray-800">Danh sach thang {monthValue}</h2>
-          <div className="text-lg font-bold text-blue-600">{currency(totalMonth)}</div>
-        </div>
-
-        <div className="space-y-2">
-          {monthlyBonus.length === 0 && (
-            <div className="text-sm text-gray-500">Chua co thuong/phu cap trong thang nay.</div>
-          )}
-
-          {monthlyBonus.map(item => (
-            <div key={item.id} className="rounded-lg border border-gray-200 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="font-medium text-gray-800">{item.title || "Thuong / phu cap"}</div>
-                <div className="font-semibold text-green-600">{currency(item.amount)}</div>
+    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
+      <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6">
+          <PageHeader
+            title="Thưởng / phụ cấp"
+            description="Quản lý thưởng và phụ cấp theo tháng"
+            icon={<Gift className="h-5 w-5 text-neutral-700" />}
+            action={
+              <div className="flex items-center gap-2">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="bonus-month" className="text-neutral-600">
+                    Tháng
+                  </Label>
+                  <Input
+                    id="bonus-month"
+                    type="month"
+                    value={monthValue}
+                    onChange={e => setMonthValue(e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="mt-1 text-xs text-gray-500">Ngay nhan: {item.date}</div>
-              {item.note && <div className="mt-2 text-sm text-gray-600">{item.note}</div>}
-              <div className="mt-3 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => startEdit(item)}
-                  className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700"
-                >
-                  Sua
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void onDelete(item.id)}
-                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700"
-                >
-                  Xoa
-                </button>
+            }
+          />
+
+          {error ? (
+            <Card className="border-red-200 bg-red-50 text-red-800">
+              <div className="p-4 text-sm">
+                <span className="font-medium">Error:</span> {error}
+              </div>
+            </Card>
+          ) : null}
+
+          {/* Form */}
+          <Card className="p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-neutral-900">
+                Thêm thưởng / phụ cấp
+              </div>
+              {editingId ? (
+                <Button type="button" variant="ghost" onClick={cancelEdit} disabled={submitting}>
+                  Hủy sửa
+                </Button>
+              ) : null}
+            </div>
+
+            <form onSubmit={onSubmit} className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-2 md:col-span-2">
+                <Label htmlFor="bonus-title">Tiêu đề</Label>
+                <Input
+                  id="bonus-title"
+                  type="text"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="Ví dụ: Phụ cấp xăng"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="bonus-amount">Số tiền</Label>
+                <Input
+                  id="bonus-amount"
+                  type="number"
+                  min={0}
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                  placeholder="Nhập số tiền"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="bonus-date">Ngày nhận</Label>
+                <Input
+                  id="bonus-date"
+                  type="date"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-2 md:col-span-2">
+                <Label htmlFor="bonus-note">Ghi chú</Label>
+                <Textarea
+                  id="bonus-note"
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                  placeholder="Ghi chú thêm (nếu có)"
+                  rows={3}
+                />
+              </div>
+
+              <div className="md:col-span-2 flex items-center justify-end gap-2">
+                <Button type="submit" disabled={submitting}>
+                  {editingId ? <Pencil /> : <Plus />}
+                  {submitting ? "Đang lưu..." : editingId ? "Cập nhật" : "Lưu"}
+                </Button>
+              </div>
+            </form>
+          </Card>
+
+          {/* List */}
+          <Card className="p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-neutral-900">
+                Danh sách tháng {monthValue}
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-neutral-500">Tổng</div>
+                <div className="text-lg font-semibold text-neutral-900">
+                  <span className="text-blue-600">{currency(totalMonth)}</span>
+                </div>
               </div>
             </div>
-          ))}
+
+            {loading ? (
+              <div className="grid gap-3">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="rounded-lg border border-neutral-200 p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-5 w-44" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-56" />
+                      </div>
+                      <Skeleton className="h-5 w-24" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : monthlyBonus.length === 0 ? (
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-700">
+                Chưa có thưởng/phụ cấp trong tháng này
+              </div>
+            ) : (
+              <div className="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+                {monthlyBonus.map(item => (
+                  <div key={item.id} className="flex items-start justify-between gap-4 p-4">
+                    <div className="min-w-0">
+                      <div className="truncate font-semibold text-neutral-900">
+                        {item.title || "Thưởng / phụ cấp"}
+                      </div>
+                      <div className="mt-1 text-xs text-neutral-500">
+                        Ngày nhận: {item.date}
+                      </div>
+                      {item.note ? (
+                        <div className="mt-2 text-sm text-neutral-600">
+                          {item.note}
+                        </div>
+                      ) : null}
+                      <div className="mt-3 flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => startEdit(item)}
+                          disabled={submitting}
+                        >
+                          <Pencil />
+                          Sửa
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-2">
+                      <div className="text-right">
+                        <div className="text-xs text-neutral-500">Số tiền</div>
+                        <div className="font-semibold text-blue-600">
+                          {currency(item.amount)}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-700 hover:bg-red-50 hover:text-red-800"
+                        onClick={() => void onDelete(item.id)}
+                        disabled={submitting}
+                        aria-label="Delete bonus"
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
-      </section>
+      </div>
     </div>
   )
 }

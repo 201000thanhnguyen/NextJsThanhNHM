@@ -4,11 +4,49 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+type NavLinkProps = {
+  href: string
+  label: string
+  className?: string
+  onClick?: () => void
+}
+
+function isActiveRoute(pathname: string | null, href: string) {
+  if (!pathname) return false
+  // Exact match
+  if (pathname === href) return true
+  // Nested routes
+  if (pathname.startsWith(href + "/")) return true
+  return false
+}
+
+function NavLink({ href, label, className, onClick }: NavLinkProps) {
+  const pathname = usePathname()
+  const active = isActiveRoute(pathname, href)
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={[
+        "inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        active ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-100",
+        className ?? "",
+      ].join(" ")}
+      aria-current={active ? "page" : undefined}
+    >
+      {label}
+    </Link>
+  )
+}
+
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  const logworkActive = pathname === "/log-work" || pathname?.startsWith("/log-work/");
 
   useEffect(() => {
     let cancelled = false;
@@ -68,13 +106,17 @@ export default function Navbar() {
 
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link href="/" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Home
-            </Link>
+            <NavLink href="/" label="Home" />
             <div className="relative group">
               <button
                 type="button"
-                className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
+                className={[
+                  "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  logworkActive
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100",
+                ].join(" ")}
+                aria-current={logworkActive ? "page" : undefined}
               >
                 LogWork
                 <svg
@@ -93,26 +135,19 @@ export default function Navbar() {
                 </svg>
               </button>
               <div className="invisible absolute left-0 top-full min-w-40 rounded bg-white py-2 shadow-lg ring-1 ring-gray-200 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                <Link
+                <NavLink
                   href="/log-work/checkin"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600"
-                >
-                  Checkin
-                </Link>
-                <Link
+                  label="Checkin"
+                  className="w-full justify-start rounded-none px-4 py-2 text-sm"
+                />
+                <NavLink
                   href="/log-work/overview"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600"
-                >
-                  Overview
-                </Link>
+                  label="Overview"
+                  className="w-full justify-start rounded-none px-4 py-2 text-sm"
+                />
               </div>
             </div>
-            <Link
-              href="/"
-              className="text-gray-700 hover:text-blue-600"
-            >
-              Contact
-            </Link>
+            <NavLink href="/contact" label="Contact" />
 
             {authed ? (
               <button
@@ -183,17 +218,12 @@ export default function Navbar() {
           >
             <div className="px-3 py-2">
               <nav className="flex flex-col gap-1 pb-4">
-                <Link
+                <NavLink
                   href="/"
+                  label="Home"
                   onClick={() => setOpen(false)}
-                  className={`flex min-h-12 items-center rounded-xl px-4 text-[15px] font-medium transition-colors ${
-                    pathname === "/"
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-800 hover:bg-gray-50 active:bg-gray-100"
-                  }`}
-                >
-                  Home
-                </Link>
+                  className="flex min-h-12 items-center rounded-xl px-4 text-[15px]"
+                />
 
                 <div className="my-1 border-t border-gray-100" />
 
@@ -201,39 +231,28 @@ export default function Navbar() {
                   LogWork
                 </p>
                 <div className="ml-2 flex flex-col gap-0.5 border-l-2 border-blue-100 pl-3">
-                  <Link
+                  <NavLink
                     href="/log-work/checkin"
+                    label="Checkin"
                     onClick={() => setOpen(false)}
-                    className={`flex min-h-11 items-center rounded-lg px-3 text-[15px] transition-colors ${
-                      pathname?.startsWith("/log-work/checkin")
-                        ? "bg-blue-50 font-medium text-blue-700"
-                        : "text-gray-800 hover:bg-gray-50 active:bg-gray-100"
-                    }`}
-                  >
-                    Checkin
-                  </Link>
-                  <Link
+                    className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
+                  />
+                  <NavLink
                     href="/log-work/overview"
+                    label="Overview"
                     onClick={() => setOpen(false)}
-                    className={`flex min-h-11 items-center rounded-lg px-3 text-[15px] transition-colors ${
-                      pathname?.startsWith("/log-work/overview")
-                        ? "bg-blue-50 font-medium text-blue-700"
-                        : "text-gray-800 hover:bg-gray-50 active:bg-gray-100"
-                    }`}
-                  >
-                    Overview
-                  </Link>
+                    className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
+                  />
                 </div>
 
                 <div className="my-1 border-t border-gray-100" />
 
-                <Link
+                <NavLink
                   href="/"
+                  label="Contact"
                   onClick={() => setOpen(false)}
-                  className="flex min-h-12 items-center rounded-xl px-4 text-[15px] font-medium text-gray-800 transition-colors hover:bg-gray-50 active:bg-gray-100"
-                >
-                  Contact
-                </Link>
+                  className="flex min-h-12 items-center rounded-xl px-4 text-[15px]"
+                />
 
                 <div className="mt-2 border-t border-gray-100 pt-3">
                   {authed ? (

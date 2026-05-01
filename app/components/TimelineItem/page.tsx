@@ -32,7 +32,6 @@ export default function TimelineItem({
   });
 
   const opacity = useTransform(distance, [0, 400], [1, 0]);
-  const scale = useTransform(distance, [0, 400], [1, 0.9]);
   //const lineScale = useTransform(distance, [0, 400], [1, 0]);
   const dotScale = useTransform(distance, [0, 400], [1.3, 0.8]);
 
