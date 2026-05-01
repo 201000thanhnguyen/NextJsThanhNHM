@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react"
 
 import { getCurrentMonthValue } from "../checkin/date"
+import { apiUrl } from "@/app/lib/api"
 
-const API_BASE_URL = "http://localhost:3001"
-const TRANSACTIONS_API = `/api/transactions`
+const TRANSACTIONS_API = apiUrl(`/api/transactions`)
 const TRANSACTIONS_SUMMARY_API = `${TRANSACTIONS_API}/summary`
 
 type TransactionType = "attendance" | "bonus" | "advance" | "penalty" | "payment"

@@ -6,9 +6,9 @@ import { useEffect, useState } from "react"
 import { ShiftModal } from "../ShiftModal"
 import { ShiftSection } from "../ShiftSection"
 import type { Shift, ShiftCreateInput } from "../types"
+import { apiUrl } from "@/app/lib/api"
 
-const API_BASE_URL = "http://localhost:3001"
-const SHIFTS_API = `/api/shifts`
+const SHIFTS_API = apiUrl(`/api/shifts`)
 
 async function fetchShifts(): Promise<Shift[]> {
   const res = await fetch(SHIFTS_API, { method: "GET" })

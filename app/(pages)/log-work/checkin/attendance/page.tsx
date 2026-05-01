@@ -7,10 +7,10 @@ import { AttendanceList } from "../AttendanceList"
 import { AttendanceModal } from "../AttendanceModal"
 import { buildMonthAttendance, getCurrentMonthValue } from "../date"
 import type { Attendance, Shift } from "../types"
+import { apiUrl } from "@/app/lib/api"
 
-const API_BASE_URL = "http://localhost:3001"
-const SHIFTS_API = `/api/shifts`
-const ATTENDANCE_API = `/api/attendance`
+const SHIFTS_API = apiUrl(`/api/shifts`)
+const ATTENDANCE_API = apiUrl(`/api/attendance`)
 
 const getTodayDateValue = () => {
   const now = new Date()

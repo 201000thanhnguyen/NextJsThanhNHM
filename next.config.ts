@@ -2,12 +2,16 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    // Proxy NestJS under same-origin so httpOnly cookies work for route guards.
-    // Nest default port in this repo: 3001 (see nestjs-app/src/main.ts)
+    const apiBaseUrl = process.env.API_BASE_URL?.trim()
+
+    // Local dev: proxy to NestJS so FE can call /api/* and still get cookies.
+    // Production: leave it empty because nginx will reverse-proxy.
+    if (!apiBaseUrl) return []
+
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3001/:path*',
+        destination: `${apiBaseUrl}/:path*`,
       },
     ]
   },
