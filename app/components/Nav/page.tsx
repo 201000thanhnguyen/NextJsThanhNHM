@@ -107,6 +107,7 @@ export default function Navbar() {
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-6">
             <NavLink href="/" label="Home" />
+            <NavLink href="/quote" label="Quote" />
             <div className="relative group">
               <button
                 type="button"
@@ -143,6 +144,11 @@ export default function Navbar() {
                 <NavLink
                   href="/log-work/overview"
                   label="Overview"
+                  className="w-full justify-start rounded-none px-4 py-2 text-sm"
+                />
+                <NavLink
+                  href="/log-work/quote"
+                  label="Quote Management"
                   className="w-full justify-start rounded-none px-4 py-2 text-sm"
                 />
               </div>
@@ -224,6 +230,12 @@ export default function Navbar() {
                   onClick={() => setOpen(false)}
                   className="flex min-h-12 items-center rounded-xl px-4 text-[15px]"
                 />
+                <NavLink
+                  href="/quote"
+                  label="Quote"
+                  onClick={() => setOpen(false)}
+                  className="flex min-h-12 items-center rounded-xl px-4 text-[15px]"
+                />
 
                 <div className="my-1 border-t border-gray-100" />
 
@@ -240,6 +252,12 @@ export default function Navbar() {
                   <NavLink
                     href="/log-work/overview"
                     label="Overview"
+                    onClick={() => setOpen(false)}
+                    className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
+                  />
+                  <NavLink
+                    href="/log-work/quote"
+                    label="Quote Management"
                     onClick={() => setOpen(false)}
                     className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
                   />
