@@ -6,6 +6,13 @@ const ACCESS_COOKIE = "access_token";
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
+  // Alias without hyphen (e.g. /logwork/debt -> /log-work/debt).
+  if (pathname === "/logwork" || pathname.startsWith("/logwork/")) {
+    const url = req.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/logwork(?=\/|$)/, "/log-work");
+    return NextResponse.redirect(url);
+  }
+
   // Protect LogWork routes.
   if (pathname.startsWith("/log-work")) {
     const token = req.cookies.get(ACCESS_COOKIE)?.value;
@@ -33,6 +40,6 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/log-work/:path*", "/login"],
+  matcher: ["/log-work/:path*", "/logwork", "/logwork/:path*", "/login"],
 };
 

@@ -151,6 +151,11 @@ export default function Navbar() {
                   label="Quote Management"
                   className="w-full justify-start rounded-none px-4 py-2 text-sm"
                 />
+                <NavLink
+                  href="/log-work/debt"
+                  label="Quản lý nợ"
+                  className="w-full justify-start rounded-none px-4 py-2 text-sm"
+                />
               </div>
             </div>
             <NavLink href="/contact" label="Contact" />
@@ -258,6 +263,12 @@ export default function Navbar() {
                   <NavLink
                     href="/log-work/quote"
                     label="Quote Management"
+                    onClick={() => setOpen(false)}
+                    className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
+                  />
+                  <NavLink
+                    href="/log-work/debt"
+                    label="Quản lý nợ"
                     onClick={() => setOpen(false)}
                     className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
                   />
