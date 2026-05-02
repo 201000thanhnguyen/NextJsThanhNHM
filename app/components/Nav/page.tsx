@@ -266,7 +266,7 @@ export default function Navbar() {
                 <div className="my-1 border-t border-gray-100" />
 
                 <NavLink
-                  href="/"
+                  href="/contact"
                   label="Contact"
                   onClick={() => setOpen(false)}
                   className="flex min-h-12 items-center rounded-xl px-4 text-[15px]"
