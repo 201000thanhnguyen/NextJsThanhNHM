@@ -64,6 +64,38 @@ function parseMoneyLoose(v: string | number): number {
   return Number.isFinite(n) ? n : 0
 }
 
+function smoothScrollTo(targetY: number, duration = 500) {
+  const startY = window.scrollY
+  const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+  const clampedTargetY = Math.min(Math.max(0, targetY), maxY)
+  const distance = clampedTargetY - startY
+  let startTime: number | null = null
+  let rafId = 0
+
+  function easeInQuad(t: number) {
+    return t * t
+  }
+
+  function animation(currentTime: number) {
+    if (startTime === null) startTime = currentTime
+    const timeElapsed = currentTime - startTime
+    const progress = Math.min(timeElapsed / duration, 1)
+    const ease = easeInQuad(progress)
+
+    window.scrollTo(0, startY + distance * ease)
+
+    if (timeElapsed < duration) {
+      rafId = window.requestAnimationFrame(animation)
+    }
+  }
+
+  rafId = window.requestAnimationFrame(animation)
+
+  return () => {
+    if (rafId) window.cancelAnimationFrame(rafId)
+  }
+}
+
 function readLastPrice(productId: string): number | null {
   try {
     const raw = localStorage.getItem(LAST_PRICE_KEY + productId)
@@ -161,12 +193,28 @@ function DebtTransactionPageInner() {
 
   useEffect(() => {
     if (!focusCustomerAfterSave) return
-    const id = window.setTimeout(() => {
+
+    const el = customerInputRef.current
+    if (!el) {
+      setFocusCustomerAfterSave(false)
+      return
+    }
+
+    const rect = el.getBoundingClientRect()
+    const targetY = rect.top + window.scrollY - window.innerHeight / 2
+
+    const cancelScroll = smoothScrollTo(targetY, 600)
+
+    const t = window.setTimeout(() => {
       customerInputRef.current?.focus()
       customerInputRef.current?.select()
       setFocusCustomerAfterSave(false)
-    }, 0)
-    return () => window.clearTimeout(id)
+    }, 650)
+
+    return () => {
+      cancelScroll()
+      window.clearTimeout(t)
+    }
   }, [focusCustomerAfterSave])
 
   useEffect(() => {
