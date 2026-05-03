@@ -91,6 +91,19 @@ export async function createCustomer(payload: {
   return body.data
 }
 
+export async function updateCustomer(
+  id: string,
+  payload: Partial<{ name: string; phone: string; note: string }>,
+): Promise<DebtCustomer> {
+  const res = await debtFetch(`/customers/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+  const body = await parseJson<{ data: DebtCustomer }>(res)
+  return body.data
+}
+
 export async function listProducts(search?: string): Promise<DebtProduct[]> {
   const qs = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : ""
   const res = await debtFetch(`/products${qs}`)

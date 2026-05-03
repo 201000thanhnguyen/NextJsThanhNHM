@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { ArrowLeft, ReceiptText } from "lucide-react"
 
@@ -17,10 +17,13 @@ import { cn } from "@/lib/utils"
 import { CustomerSearchInput, todayYmdLocal } from "../components/CustomerSearchInput"
 import {
   autocompleteProducts,
+  createCustomer,
   createDebtTransaction,
+  createProduct,
   formatVnd,
   getCustomer,
   moneyNum,
+  updateProduct,
 } from "../debt-api"
 import type { DebtProduct } from "../types"
 
@@ -37,6 +40,8 @@ type Line = {
   quantity: number
   defaultPrice?: number
   showSuggestions: boolean
+  isNewProduct?: boolean
+  priceMode?: "custom" | "update"
 }
 
 function newLine(): Line {
@@ -47,7 +52,16 @@ function newLine(): Line {
     price: 0,
     quantity: 1,
     showSuggestions: false,
+    priceMode: "custom",
   }
+}
+
+function parseMoneyLoose(v: string | number): number {
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0
+  const raw = String(v)
+  const cleaned = raw.replace(/[^\d.-]/g, "")
+  const n = Number(cleaned)
+  return Number.isFinite(n) ? n : 0
 }
 
 function readLastPrice(productId: string): number | null {
@@ -77,11 +91,17 @@ function DebtTransactionPageInner() {
   const [customer, setCustomer] = useState<Cust>(null)
   const [transactionDate, setTransactionDate] = useState(todayYmdLocal)
   const [note, setNote] = useState("")
-  const [lines, setLines] = useState<Line[]>(() => [newLine()])
+  // NOTE: Client components are still pre-rendered on server; avoid random IDs in initial HTML.
+  const [lines, setLines] = useState<Line[]>(() => [{ ...newLine(), key: "line-0" }])
   const [saving, setSaving] = useState(false)
 
   const [debouncedSearch, setDebouncedSearch] = useState<Record<string, string>>({})
   const [suggestionsByLine, setSuggestionsByLine] = useState<Record<string, DebtProduct[]>>({})
+  const [activeSugIndexByLine, setActiveSugIndexByLine] = useState<Record<string, number>>({})
+  const firstProductRef = useRef<HTMLInputElement>(null)
+  const customerInputRef = useRef<HTMLInputElement>(null)
+  const [focusCustomerAfterSave, setFocusCustomerAfterSave] = useState(false)
+  const pendingProductFocusKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!customerIdParam?.trim()) return
@@ -121,9 +141,9 @@ function DebtTransactionPageInner() {
         lines.map(async (line) => {
           const q = debouncedSearch[line.key] ?? ""
           try {
-            const res = await autocompleteProducts(q || undefined, 16)
+            const res = await autocompleteProducts(q || undefined, 10)
             const merged = res.merged.length ? res.merged : res.results
-            return [line.key, merged] as const
+            return [line.key, (merged ?? []).slice(0, 10)] as const
           } catch {
             return [line.key, [] as DebtProduct[]] as const
           }
@@ -139,12 +159,36 @@ function DebtTransactionPageInner() {
     }
   }, [lines, debouncedSearch])
 
+  useEffect(() => {
+    if (!focusCustomerAfterSave) return
+    const id = window.setTimeout(() => {
+      customerInputRef.current?.focus()
+      customerInputRef.current?.select()
+      setFocusCustomerAfterSave(false)
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [focusCustomerAfterSave])
+
+  useEffect(() => {
+    const key = pendingProductFocusKeyRef.current
+    if (!key) return
+    const id = window.setTimeout(() => {
+      const el = document.querySelector<HTMLInputElement>(`[data-product-input-key="${key}"]`)
+      el?.focus()
+      el?.select()
+      pendingProductFocusKeyRef.current = null
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [lines.length])
+
   const addLine = useCallback(() => {
-    setLines((prev) => [...prev, newLine()])
+    const nl = newLine()
+    pendingProductFocusKeyRef.current = nl.key
+    setLines((prev) => [...prev, nl])
   }, [])
 
   const applyProduct = (lineKey: string, p: DebtProduct) => {
-    const def = moneyNum(p.defaultPrice)
+    const def = parseMoneyLoose(p.defaultPrice)
     const last = readLastPrice(p.id)
     const price = last ?? def
     setLines((prev) =>
@@ -158,10 +202,35 @@ function DebtTransactionPageInner() {
               defaultPrice: def,
               price,
               showSuggestions: false,
+              isNewProduct: false,
+              priceMode: "custom",
             }
           : l,
       ),
     )
+    setActiveSugIndexByLine((prev) => ({ ...prev, [lineKey]: -1 }))
+  }
+
+  const markNewProduct = (lineKey: string, name: string) => {
+    const n = name.trim()
+    if (!n) return
+    setLines((prev) =>
+      prev.map((l) =>
+        l.key === lineKey
+          ? {
+              ...l,
+              productId: undefined,
+              productName: n,
+              search: n,
+              defaultPrice: undefined,
+              showSuggestions: false,
+              isNewProduct: true,
+              priceMode: "update",
+            }
+          : l,
+      ),
+    )
+    setActiveSugIndexByLine((prev) => ({ ...prev, [lineKey]: -1 }))
   }
 
   const resetPriceToDefault = (lineKey: string) => {
@@ -181,16 +250,83 @@ function DebtTransactionPageInner() {
       toast.error("Chọn khách hàng từ danh sách gợi ý")
       return
     }
+
+    // If user selected "create new customer", create it only on submit.
+    let customerIdToUse = customer.id
+    if (!customerIdToUse) {
+      const name = (customer as { name?: string }).name?.trim() || ""
+      if (!name) {
+        toast.error("Nhập tên khách hàng")
+        return
+      }
+      try {
+        const created = await createCustomer({ name })
+        customerIdToUse = created.id
+        setCustomer({ id: created.id, name: created.name })
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Không tạo được khách hàng")
+        return
+      }
+    }
+
+    // Create-on-the-fly for any typed product that wasn't selected.
+    const missingNames = Array.from(
+      new Set(
+        lines
+          .filter((l) => !l.productId && l.productName.trim().length > 0)
+          .map((l) => l.productName.trim()),
+      ),
+    )
+    const createdByName = new Map<string, DebtProduct>()
+    if (missingNames.length) {
+      const priceByName = new Map<string, number>()
+      for (const l of lines) {
+        const n = l.productName.trim()
+        if (!n || l.productId) continue
+        if (!priceByName.has(n)) priceByName.set(n, Math.max(0, l.price))
+      }
+      const created = await Promise.allSettled(
+        missingNames.map(async (name) => {
+          const defaultPrice = priceByName.get(name) ?? 0
+          const p = await createProduct({ name, defaultPrice })
+          return { name, p }
+        }),
+      )
+      for (const r of created) {
+        if (r.status === "fulfilled") createdByName.set(r.value.name, r.value.p)
+      }
+    }
+
+    // If user chose "Cập nhật giá này", persist defaultPrice before saving transaction.
+    const toUpdate = lines
+      .filter((l) => l.productId && l.priceMode === "update")
+      .map((l) => ({ id: l.productId as string, defaultPrice: Math.max(0, l.price) }))
+    if (toUpdate.length) {
+      const results = await Promise.allSettled(
+        toUpdate.map((u) => updateProduct(u.id, { defaultPrice: u.defaultPrice })),
+      )
+      const failed = results.filter((r) => r.status === "rejected").length
+      if (failed) {
+        toast.error("Có sản phẩm chưa cập nhật được giá, nhưng giao dịch vẫn sẽ được lưu theo giá bạn nhập.")
+      }
+    }
+
     const items = lines
       .filter((l) => l.productName.trim().length > 0)
-      .map((l) => ({
-        productId: l.productId,
-        productNameSnapshot: l.productName.trim(),
-        priceSnapshot: Math.max(0, l.price),
-        originalProductPrice:
-          l.productId && l.defaultPrice !== undefined ? l.defaultPrice : undefined,
-        quantity: Math.max(1, Math.floor(l.quantity)),
-      }))
+      .map((l) => {
+        const name = l.productName.trim()
+        const created = !l.productId ? createdByName.get(name) : undefined
+        const productId = l.productId ?? created?.id
+        const originalDefault =
+          productId && l.defaultPrice !== undefined ? l.defaultPrice : created ? Math.max(0, l.price) : undefined
+        return {
+          productId,
+          productNameSnapshot: name,
+          priceSnapshot: Math.max(0, l.price),
+          originalProductPrice: originalDefault,
+          quantity: Math.max(1, Math.floor(l.quantity)),
+        }
+      })
     if (items.length === 0) {
       toast.error("Thêm ít nhất một dòng sản phẩm")
       return
@@ -198,7 +334,7 @@ function DebtTransactionPageInner() {
     try {
       setSaving(true)
       await createDebtTransaction({
-        customerId: customer.id,
+        customerId: customerIdToUse,
         transactionDate: transactionDate.trim() || undefined,
         note: note.trim() || undefined,
         items,
@@ -206,8 +342,10 @@ function DebtTransactionPageInner() {
       for (const l of lines) {
         if (l.productId) writeLastPrice(l.productId, l.price)
       }
-      toast.success("Đã lưu giao dịch")
-      router.push(`/log-work/debt/customers/${encodeURIComponent(customer.id)}`)
+      toast.success("Đã lưu giao dịch thành công")
+      setNote("")
+      setLines([newLine()])
+      setFocusCustomerAfterSave(true)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Không lưu được")
     } finally {
@@ -248,6 +386,7 @@ function DebtTransactionPageInner() {
               </Label>
               <CustomerSearchInput
                 id="cust-search"
+                ref={customerInputRef}
                 value={customer}
                 onChange={setCustomer}
                 autoFocus={!customerIdParam?.trim()}
@@ -285,9 +424,16 @@ function DebtTransactionPageInner() {
             <div className="mt-6 space-y-6">
               {lines.map((line, idx) => {
                 const sug = suggestionsByLine[line.key] ?? []
+                const trimmed = line.search.trim()
+                const options = [
+                  ...sug.map((p) => ({ kind: "hit" as const, p })),
+                  ...(trimmed ? [{ kind: "create" as const, name: trimmed }] : []),
+                ]
+                const activeIdx = activeSugIndexByLine[line.key] ?? -1
                 const priceDiffers =
                   line.defaultPrice !== undefined &&
                   Math.abs(line.price - line.defaultPrice) > 0.009
+                const priceMode = line.priceMode ?? "custom"
 
                 return (
                   <div
@@ -311,6 +457,8 @@ function DebtTransactionPageInner() {
                       <div className="relative md:col-span-5">
                         <Label className="text-base">Sản phẩm</Label>
                         <Input
+                          ref={idx === 0 ? firstProductRef : undefined}
+                          data-product-input-key={line.key}
                           className="mt-2 h-14 text-lg"
                           value={line.search}
                           onChange={(e) =>
@@ -322,18 +470,59 @@ function DebtTransactionPageInner() {
                                       search: e.target.value,
                                       productName: e.target.value,
                                       showSuggestions: true,
+                                      isNewProduct: undefined,
                                     }
                                   : l,
                               ),
                             )
                           }
-                          onFocus={() =>
+                          onFocus={(e) => {
+                            e.currentTarget.select()
                             setLines((prev) =>
                               prev.map((l) =>
                                 l.key === line.key ? { ...l, showSuggestions: true } : l,
                               ),
                             )
-                          }
+                          }}
+                          onKeyDown={(e) => {
+                            if (!line.showSuggestions) {
+                              if (e.key === "Enter" && trimmed) {
+                                e.preventDefault()
+                                markNewProduct(line.key, trimmed)
+                              }
+                              return
+                            }
+
+                            if (e.key === "ArrowDown") {
+                              e.preventDefault()
+                              setActiveSugIndexByLine((prev) => ({
+                                ...prev,
+                                [line.key]: Math.min(options.length - 1, (prev[line.key] ?? -1) + 1),
+                              }))
+                            } else if (e.key === "ArrowUp") {
+                              e.preventDefault()
+                              setActiveSugIndexByLine((prev) => ({
+                                ...prev,
+                                [line.key]: Math.max(-1, (prev[line.key] ?? -1) - 1),
+                              }))
+                            } else if (e.key === "Escape") {
+                              e.preventDefault()
+                              setLines((prev) =>
+                                prev.map((l) =>
+                                  l.key === line.key ? { ...l, showSuggestions: false } : l,
+                                ),
+                              )
+                              setActiveSugIndexByLine((prev) => ({ ...prev, [line.key]: -1 }))
+                            } else if (e.key === "Enter") {
+                              if (!trimmed) return
+                              e.preventDefault()
+                              const idx = activeIdx >= 0 ? activeIdx : options.length - 1
+                              const opt = options[idx]
+                              if (!opt) return
+                              if (opt.kind === "hit") applyProduct(line.key, opt.p)
+                              else markNewProduct(line.key, opt.name)
+                            }
+                          }}
                           onBlur={() => {
                             window.setTimeout(() => {
                               setLines((prev) =>
@@ -346,20 +535,54 @@ function DebtTransactionPageInner() {
                           autoComplete="off"
                           placeholder="Gõ tên sản phẩm…"
                         />
-                        {line.showSuggestions && sug.length > 0 ? (
+                        {line.showSuggestions && options.length > 0 ? (
                           <div className="absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-neutral-200 bg-white shadow-lg">
-                            {sug.map((p) => (
-                              <button
-                                key={p.id}
-                                type="button"
-                                className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-base hover:bg-neutral-50"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => applyProduct(line.key, p)}
-                              >
-                                <span className="font-medium">{p.name}</span>
-                                <span className="text-sm text-neutral-600">{formatVnd(p.defaultPrice)} đ</span>
-                              </button>
-                            ))}
+                            {options.map((opt, i) => {
+                              if (opt.kind === "hit") {
+                                const p = opt.p
+                                return (
+                                  <button
+                                    key={p.id}
+                                    type="button"
+                                    className={cn(
+                                      "flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-base",
+                                      "hover:bg-neutral-50",
+                                      i === activeIdx && "bg-neutral-50",
+                                    )}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onMouseMove={() =>
+                                      setActiveSugIndexByLine((prev) => ({ ...prev, [line.key]: i }))
+                                    }
+                                    onClick={() => applyProduct(line.key, p)}
+                                  >
+                                    <span className="font-medium">{p.name}</span>
+                                    <span className="text-sm text-neutral-600">
+                                      {formatVnd(p.defaultPrice)} đ
+                                    </span>
+                                  </button>
+                                )
+                              }
+
+                              return (
+                                <button
+                                  key={`create:${line.key}:${opt.name}`}
+                                  type="button"
+                                  className={cn(
+                                    "flex w-full items-center gap-2 px-4 py-3 text-left text-base",
+                                    "text-emerald-800 hover:bg-emerald-50",
+                                    i === activeIdx && "bg-emerald-50",
+                                  )}
+                                  onMouseDown={(e) => e.preventDefault()}
+                                  onMouseMove={() =>
+                                    setActiveSugIndexByLine((prev) => ({ ...prev, [line.key]: i }))
+                                  }
+                                  onClick={() => markNewProduct(line.key, opt.name)}
+                                >
+                                  <span className="font-semibold">➕ Tạo sản phẩm mới:</span>
+                                  <span className="truncate text-neutral-900">{opt.name}</span>
+                                </button>
+                              )
+                            })}
                           </div>
                         ) : null}
                       </div>
@@ -374,6 +597,7 @@ function DebtTransactionPageInner() {
                             priceDiffers && "ring-2 ring-amber-400",
                           )}
                           value={Number.isFinite(line.price) ? line.price : 0}
+                          onFocus={(e) => e.currentTarget.select()}
                           onChange={(e) =>
                             setLines((prev) =>
                               prev.map((l) =>
@@ -382,6 +606,39 @@ function DebtTransactionPageInner() {
                             )
                           }
                         />
+                        <div className="mt-2 flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2">
+                          <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-800">
+                            <input
+                              type="radio"
+                              name={`price-mode:${line.key}`}
+                              checked={priceMode === "custom"}
+                              onChange={() =>
+                                setLines((prev) =>
+                                  prev.map((l) =>
+                                    l.key === line.key ? { ...l, priceMode: "custom" } : l,
+                                  ),
+                                )
+                              }
+                            />
+                            Giá tự chọn
+                          </label>
+                          <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-800">
+                            <input
+                              type="radio"
+                              name={`price-mode:${line.key}`}
+                              checked={priceMode === "update"}
+                              disabled={!line.productId && !line.isNewProduct}
+                              onChange={() =>
+                                setLines((prev) =>
+                                  prev.map((l) =>
+                                    l.key === line.key ? { ...l, priceMode: "update" } : l,
+                                  ),
+                                )
+                              }
+                            />
+                            Cập nhật giá này
+                          </label>
+                        </div>
                         {line.defaultPrice !== undefined ? (
                           <Button
                             type="button"
@@ -401,6 +658,7 @@ function DebtTransactionPageInner() {
                           step={1}
                           className="mt-2 h-14 text-lg tabular-nums"
                           value={line.quantity}
+                          onFocus={(e) => e.currentTarget.select()}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault()

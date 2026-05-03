@@ -3,11 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Banknote, FilePlus, UserRound } from "lucide-react"
+import { toast } from "sonner"
 
 import { PageHeader } from "@/app/components/PageHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 import {
   customerTimeline,
@@ -16,8 +20,17 @@ import {
   listPayments,
   listTransactions,
   moneyNum,
+  updateCustomer,
 } from "../../debt-api"
-import type { DebtPaymentListRow, DebtTransactionDetail, TimelineEntry } from "../../types"
+import type { DebtCustomer, DebtPaymentListRow, DebtTransactionDetail, TimelineEntry } from "../../types"
+
+function isValidPhone(phone: string): boolean {
+  const raw = phone.trim()
+  if (!raw) return true
+  if (!/^[0-9+\-\s().]+$/.test(raw)) return false
+  const digits = raw.replace(/\D/g, "")
+  return digits.length >= 8 && digits.length <= 15
+}
 
 function statusBadge(status: string) {
   if (status === "PAID") return <Badge variant="success">Đã trả</Badge>
@@ -31,12 +44,18 @@ export default function CustomerDebtDetailPage() {
   const id = params?.id ?? ""
 
   const [tab, setTab] = useState<"tx" | "pay">("tx")
-  const [name, setName] = useState("")
+  const [customer, setCustomer] = useState<DebtCustomer | null>(null)
   const [timeline, setTimeline] = useState<TimelineEntry[]>([])
   const [txs, setTxs] = useState<DebtTransactionDetail[]>([])
   const [pays, setPays] = useState<DebtPaymentListRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [editing, setEditing] = useState(false)
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [draftName, setDraftName] = useState("")
+  const [draftPhone, setDraftPhone] = useState("")
+  const [draftNote, setDraftNote] = useState("")
 
   const load = useCallback(async () => {
     if (!id) return
@@ -48,7 +67,7 @@ export default function CustomerDebtDetailPage() {
         listTransactions(id),
         listPayments(id),
       ])
-      setName(cust.name)
+      setCustomer(cust)
       setTimeline(tl)
       setTxs(t)
       setPays(p)
@@ -75,17 +94,145 @@ export default function CustomerDebtDetailPage() {
     return moneyNum(latest.runningDebt)
   }, [timeline])
 
+  const startEdit = () => {
+    if (!customer) return
+    setDraftName(customer.name ?? "")
+    setDraftPhone(customer.phone ?? "")
+    setDraftNote(customer.note ?? "")
+    setEditing(true)
+  }
+
+  const cancelEdit = () => {
+    setEditing(false)
+    if (!customer) return
+    setDraftName(customer.name ?? "")
+    setDraftPhone(customer.phone ?? "")
+    setDraftNote(customer.note ?? "")
+  }
+
+  const saveEdit = async () => {
+    if (!customer) return
+    const name = draftName.trim()
+    const phone = draftPhone.trim()
+    const note = draftNote.trim()
+
+    if (!name) {
+      toast.error("Tên khách hàng là bắt buộc")
+      return
+    }
+    if (!isValidPhone(phone)) {
+      toast.error("Số điện thoại không hợp lệ")
+      return
+    }
+
+    try {
+      setSavingEdit(true)
+      const updated = await updateCustomer(customer.id, {
+        name,
+        phone: phone || "",
+        note: note || "",
+      })
+      setCustomer(updated)
+      toast.success("Đã cập nhật khách hàng")
+      setEditing(false)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Không cập nhật được")
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
       <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6">
           <PageHeader
-            title={name || "Khách hàng"}
+            title={customer?.name || "Khách hàng"}
             description="Theo dõi giao dịch, thanh toán và mức nợ lũy kế (ước tính trên timeline)."
             icon={<UserRound className="h-5 w-5 text-neutral-700" />}
             backHref="/log-work/debt/customers"
             backLabel="Danh sách khách"
+            action={
+              customer ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 text-base"
+                  onClick={() => (editing ? cancelEdit() : startEdit())}
+                >
+                  {editing ? "Huỷ" : "Chỉnh sửa"}
+                </Button>
+              ) : null
+            }
           />
+
+          {customer?.phone ? (
+            <div className="-mt-2 text-sm text-neutral-700">
+              <span className="mr-2">📞</span>
+              <span className="font-medium">{customer.phone}</span>
+            </div>
+          ) : null}
+
+          {customer ? (
+            <Card className="p-5 shadow-sm">
+              {!editing ? (
+                <div className="space-y-1 text-sm text-neutral-700">
+                  <div>
+                    <span className="text-neutral-500">Tên:</span>{" "}
+                    <span className="font-semibold text-neutral-900">{customer.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500">SĐT:</span>{" "}
+                    <span className="font-medium">{customer.phone || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500">Ghi chú:</span>{" "}
+                    <span className="font-medium">{customer.note || "—"}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  <div>
+                    <Label className="text-base">Tên khách hàng</Label>
+                    <Input
+                      className="mt-2 h-12 text-base"
+                      value={draftName}
+                      onFocus={(e) => e.currentTarget.select()}
+                      onChange={(e) => setDraftName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-base">Số điện thoại</Label>
+                    <Input
+                      className="mt-2 h-12 text-base"
+                      value={draftPhone}
+                      onFocus={(e) => e.currentTarget.select()}
+                      onChange={(e) => setDraftPhone(e.target.value)}
+                      placeholder="Tuỳ chọn"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-base">Ghi chú</Label>
+                    <Textarea
+                      className="mt-2 text-base"
+                      rows={3}
+                      value={draftNote}
+                      onChange={(e) => setDraftNote(e.target.value)}
+                      placeholder="Tuỳ chọn"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Button type="button" className="h-11 text-base" disabled={savingEdit} onClick={() => void saveEdit()}>
+                      {savingEdit ? "Đang lưu…" : "Lưu"}
+                    </Button>
+                    <Button type="button" variant="secondary" className="h-11 text-base" onClick={cancelEdit}>
+                      Huỷ
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
+          ) : null}
 
           <Card className="flex flex-col gap-2 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
