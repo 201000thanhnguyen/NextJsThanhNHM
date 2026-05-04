@@ -1,5 +1,5 @@
 ﻿import Link from "next/link"
-import { CalendarCheck2, CalendarDays, Clock, Gift } from "lucide-react"
+import { CalendarCheck2, CalendarDays, CircleDollarSign, Clock, Gift } from "lucide-react"
 
 import { PageHeader } from "@/app/components/PageHeader"
 import { Button } from "@/components/ui/button"
@@ -47,6 +47,23 @@ export default function Page() {
                 </div>
                 <Button asChild variant="outline" className="shrink-0">
                   <Link href="/log-work/checkin/attendance">Open</Link>
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="group p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md md:col-span-2">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-base font-semibold text-neutral-900">
+                    <CircleDollarSign className="h-5 w-5 text-neutral-600" />
+                    Tổng quan
+                  </div>
+                  <p className="mt-1 text-sm text-neutral-600">
+                    Tổng hợp thu nhập theo tháng và lịch sử thanh toán.
+                  </p>
+                </div>
+                <Button asChild variant="outline" className="shrink-0">
+                  <Link href="/log-work/overview">Open</Link>
                 </Button>
               </div>
             </Card>

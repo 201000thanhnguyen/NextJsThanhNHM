@@ -6,6 +6,7 @@ import type {
   DebtPaymentDetail,
   DebtPaymentListRow,
   DebtProduct,
+  DebtReportRow,
   DebtTransactionDetail,
   TimelineEntry,
 } from "./types"
@@ -166,6 +167,7 @@ export async function createDebtTransaction(payload: {
   customerId: string
   transactionDate?: string
   note?: string
+  prepaidAmount?: number
   items: Array<{
     productId?: string
     productNameSnapshot: string
@@ -234,5 +236,18 @@ export async function customerDebts(): Promise<CustomerDebtRow[]> {
 export async function customerTimeline(customerId: string): Promise<TimelineEntry[]> {
   const res = await debtFetch(`/customers/${customerId}/timeline`)
   const body = await parseJson<{ data: TimelineEntry[] }>(res)
+  return body.data ?? []
+}
+
+export async function debtReport(params?: {
+  fromDate?: string
+  toDate?: string
+}): Promise<DebtReportRow[]> {
+  const sp = new URLSearchParams()
+  if (params?.fromDate?.trim()) sp.set("fromDate", params.fromDate.trim())
+  if (params?.toDate?.trim()) sp.set("toDate", params.toDate.trim())
+  const qs = sp.toString() ? `?${sp.toString()}` : ""
+  const res = await debtFetch(`/report${qs}`)
+  const body = await parseJson<{ data: DebtReportRow[] }>(res)
   return body.data ?? []
 }

@@ -32,6 +32,7 @@ export type DebtTransaction = {
   customerId: string
   customerNameSnapshot: string
   totalAmount: string
+  prepaidAmount: string
   paidAmount: string
   status: DebtTransactionStatus
   note: string | null
@@ -108,3 +109,23 @@ export type TimelineEntry =
       note: string | null
       runningDebt: string
     }
+
+export type DebtReportItem = {
+  id: string
+  productNameSnapshot: string
+  quantity: number
+  priceSnapshot: string
+  subtotal: string
+}
+
+export type DebtReportRow = {
+  transactionId: string
+  transactionDate: string
+  createdAt: string
+  customerId: string
+  customerName: string
+  totalAmount: string
+  paidAmountAtThatTime: string
+  remainingDebt: string
+  items: DebtReportItem[]
+}

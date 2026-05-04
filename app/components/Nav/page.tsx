@@ -142,11 +142,6 @@ export default function Navbar() {
                   className="w-full justify-start rounded-none px-4 py-2 text-sm"
                 />
                 <NavLink
-                  href="/log-work/overview"
-                  label="Overview"
-                  className="w-full justify-start rounded-none px-4 py-2 text-sm"
-                />
-                <NavLink
                   href="/log-work/quote"
                   label="Quote Management"
                   className="w-full justify-start rounded-none px-4 py-2 text-sm"
@@ -251,12 +246,6 @@ export default function Navbar() {
                   <NavLink
                     href="/log-work/checkin"
                     label="Checkin"
-                    onClick={() => setOpen(false)}
-                    className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
-                  />
-                  <NavLink
-                    href="/log-work/overview"
-                    label="Overview"
                     onClick={() => setOpen(false)}
                     className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
                   />

@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 import { CustomerSearchInput, todayYmdLocal } from "../components/CustomerSearchInput"
+import type { CustomerInputValue } from "../components/CustomerSearchInput"
 import {
   autocompleteProducts,
   createCustomer,
@@ -28,8 +29,6 @@ import {
 import type { DebtProduct } from "../types"
 
 const LAST_PRICE_KEY = "logwork-debt:lastPrice:"
-
-type Cust = { id: string; name: string } | null
 
 type Line = {
   key: string
@@ -120,11 +119,12 @@ function DebtTransactionPageInner() {
   const searchParams = useSearchParams()
   const customerIdParam = searchParams.get("customerId")
 
-  const [customer, setCustomer] = useState<Cust>(null)
+  const [customer, setCustomer] = useState<CustomerInputValue>(null)
   const [transactionDate, setTransactionDate] = useState(todayYmdLocal)
   const [note, setNote] = useState("")
   // NOTE: Client components are still pre-rendered on server; avoid random IDs in initial HTML.
   const [lines, setLines] = useState<Line[]>(() => [{ ...newLine(), key: "line-0" }])
+  const [prepaidStr, setPrepaidStr] = useState("0")
   const [saving, setSaving] = useState(false)
 
   const [debouncedSearch, setDebouncedSearch] = useState<Record<string, string>>({})
@@ -141,7 +141,7 @@ function DebtTransactionPageInner() {
     ;(async () => {
       try {
         const c = await getCustomer(customerIdParam.trim())
-        if (!cancelled) setCustomer({ id: c.id, name: c.name })
+        if (!cancelled) setCustomer({ id: c.id, name: c.name, isNew: false })
       } catch (e) {
         if (!cancelled) {
           toast.error(e instanceof Error ? e.message : "Không tải được khách hàng")
@@ -293,8 +293,17 @@ function DebtTransactionPageInner() {
     return lines.reduce((acc, l) => acc + Math.max(0, l.price) * Math.max(1, l.quantity), 0)
   }, [lines])
 
+  const prepaidPreview = useMemo(() => {
+    const n = Number(String(prepaidStr).replace(/\s/g, "").replace(",", "."))
+    return Number.isFinite(n) ? n : 0
+  }, [prepaidStr])
+
+  const remainingPreview = useMemo(() => {
+    return Math.max(0, totalPreview - Math.max(0, prepaidPreview))
+  }, [totalPreview, prepaidPreview])
+
   const submit = async () => {
-    if (!customer) {
+    if (!customer || !("id" in customer)) {
       toast.error("Chọn khách hàng từ danh sách gợi ý")
       return
     }
@@ -310,11 +319,21 @@ function DebtTransactionPageInner() {
       try {
         const created = await createCustomer({ name })
         customerIdToUse = created.id
-        setCustomer({ id: created.id, name: created.name })
+        setCustomer({ id: created.id, name: created.name, isNew: false })
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Không tạo được khách hàng")
         return
       }
+    }
+
+    const prepaid = Math.max(0, prepaidPreview)
+    if (!Number.isFinite(prepaid) || prepaid < 0) {
+      toast.error("Số tiền trả trước không hợp lệ")
+      return
+    }
+    if (prepaid - totalPreview > 0.0001) {
+      toast.error("Trả trước không được lớn hơn tổng tiền")
+      return
     }
 
     // Create-on-the-fly for any typed product that wasn't selected.
@@ -385,6 +404,7 @@ function DebtTransactionPageInner() {
         customerId: customerIdToUse,
         transactionDate: transactionDate.trim() || undefined,
         note: note.trim() || undefined,
+        prepaidAmount: prepaid,
         items,
       })
       for (const l of lines) {
@@ -393,6 +413,7 @@ function DebtTransactionPageInner() {
       toast.success("Đã lưu giao dịch thành công")
       setNote("")
       setLines([newLine()])
+      setPrepaidStr("0")
       setFocusCustomerAfterSave(true)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Không lưu được")
@@ -736,6 +757,45 @@ function DebtTransactionPageInner() {
                   </div>
                 )
               })}
+            </div>
+
+            <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
+              <div className="grid gap-4 sm:grid-cols-2 sm:items-end">
+                <div className="max-w-sm">
+                  <Label htmlFor="prepaid" className="text-base">
+                    Trả trước
+                  </Label>
+                  <Input
+                    id="prepaid"
+                    type="number"
+                    min={0}
+                    step="any"
+                    inputMode="decimal"
+                    className="mt-2 h-12 text-lg tabular-nums"
+                    value={prepaidStr}
+                    onFocus={(e) => e.currentTarget.select()}
+                    onChange={(e) => setPrepaidStr(e.target.value)}
+                  />
+                  <p className="mt-2 text-sm text-neutral-500">Tối đa bằng tổng tiền của giao dịch.</p>
+                </div>
+
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
+                  <div className="flex items-center justify-between text-sm text-neutral-700">
+                    <span>Tổng</span>
+                    <span className="font-semibold tabular-nums text-neutral-900">{formatVnd(totalPreview)} đ</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-sm text-neutral-700">
+                    <span>Trả trước</span>
+                    <span className="font-semibold tabular-nums text-emerald-800">
+                      {formatVnd(Math.max(0, prepaidPreview))} đ
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-sm text-neutral-700">
+                    <span>Còn nợ</span>
+                    <span className="font-semibold tabular-nums text-neutral-900">{formatVnd(remainingPreview)} đ</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">

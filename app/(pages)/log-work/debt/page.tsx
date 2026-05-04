@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Banknote, Package, ReceiptText, Scale, Users } from "lucide-react"
+import { Banknote, FileText, Package, ReceiptText, Scale, Users } from "lucide-react"
 
 import { PageHeader } from "@/app/components/PageHeader"
 import { Button } from "@/components/ui/button"
@@ -77,6 +77,23 @@ export default function DebtHubPage() {
                 </div>
                 <Button asChild variant="outline" className="h-11 min-w-[5.5rem] shrink-0 text-base">
                   <Link href="/log-work/debt/payment">Open</Link>
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="group p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-base font-semibold text-neutral-900">
+                    <FileText className="h-5 w-5 text-neutral-600" />
+                    Sao kê
+                  </div>
+                  <p className="mt-1 text-sm text-neutral-600">
+                    Xem chi tiết giao dịch theo snapshot và trạng thái thanh toán tại thời điểm ghi nợ.
+                  </p>
+                </div>
+                <Button asChild variant="outline" className="h-11 min-w-[5.5rem] shrink-0 text-base">
+                  <Link href="/log-work/debt/report">Open</Link>
                 </Button>
               </div>
             </Card>

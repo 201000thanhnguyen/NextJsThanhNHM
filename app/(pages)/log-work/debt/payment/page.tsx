@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog"
 
 import { CustomerSearchInput, todayYmdLocal } from "../components/CustomerSearchInput"
+import type { CustomerInputValue } from "../components/CustomerSearchInput"
 import {
   addPaymentAdjustment,
   createPayment,
@@ -29,8 +30,6 @@ import {
   listPayments,
 } from "../debt-api"
 import type { DebtPaymentListRow } from "../types"
-
-type Cust = { id: string; name: string } | null
 
 function displayPaymentDate(p: DebtPaymentListRow): string {
   if (p.paymentDate) return p.paymentDate
@@ -42,7 +41,7 @@ function DebtPaymentPageInner() {
   const searchParams = useSearchParams()
   const customerIdParam = searchParams.get("customerId")
 
-  const [customer, setCustomer] = useState<Cust>(null)
+  const [customer, setCustomer] = useState<CustomerInputValue>(null)
   const [amountStr, setAmountStr] = useState("")
   const [paymentDate, setPaymentDate] = useState(todayYmdLocal)
   const [note, setNote] = useState("")
@@ -55,14 +54,17 @@ function DebtPaymentPageInner() {
   const [adjNote, setAdjNote] = useState("")
   const [adjSaving, setAdjSaving] = useState(false)
 
+  const selectedCustomerId =
+    customer && typeof customer === "object" && "id" in customer ? customer.id : undefined
+
   const load = useCallback(async () => {
     try {
-      const data = await listPayments(customer?.id)
+      const data = await listPayments(selectedCustomerId)
       setRows(data)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Không tải được lịch sử")
     }
-  }, [customer?.id])
+  }, [selectedCustomerId])
 
   useEffect(() => {
     void load()
@@ -74,7 +76,7 @@ function DebtPaymentPageInner() {
     ;(async () => {
       try {
         const c = await getCustomer(customerIdParam.trim())
-        if (!cancelled) setCustomer({ id: c.id, name: c.name })
+        if (!cancelled) setCustomer({ id: c.id, name: c.name, isNew: false })
       } catch (e) {
         if (!cancelled) {
           toast.error(e instanceof Error ? e.message : "Không tải được khách hàng")
@@ -87,7 +89,7 @@ function DebtPaymentPageInner() {
   }, [customerIdParam])
 
   const submit = async () => {
-    if (!customer) {
+    if (!customer || !("id" in customer)) {
       toast.error("Chọn khách hàng từ gợi ý")
       return
     }
