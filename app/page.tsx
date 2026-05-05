@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import TimelineItem from "./components/TimelineItem/page";
+import TimelineItem from "@/components/shared/TimelineItem";
 
 export default function Home() {
   return (

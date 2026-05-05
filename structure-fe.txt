@@ -1,82 +1,52 @@
 nextjs-app/
 ├── app/
-│   ├── (pages)/
-│   │   ├── log-work/
-│   │   │   ├── checkin/
-│   │   │   │   ├── attendance/
-│   │   │   │   ├── bonus/
-│   │   │   │   ├── shifts/
-│   │   │   │   ├── AttendanceList.tsx
-│   │   │   │   ├── AttendanceModal.tsx
-│   │   │   │   ├── date.ts
-│   │   │   │   ├── page.tsx
-│   │   │   │   ├── ShiftModal.tsx
-│   │   │   │   ├── ShiftSection.tsx
-│   │   │   │   └── types.ts
-│   │   │   ├── debt/
-│   │   │   │   ├── components/
-│   │   │   │   ├── customers/
-│   │   │   │   ├── payment/
-│   │   │   │   ├── products/
-│   │   │   │   ├── report/
-│   │   │   │   ├── transaction/
-│   │   │   │   ├── debt-api.ts
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── types.ts
-│   │   │   ├── overview/
+│   ├── log-work/
+│   │   ├── checkin/
+│   │   │   ├── attendance/
 │   │   │   │   └── page.tsx
-│   │   │   ├── quote/
-│   │   │   │   ├── components/
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── types.ts
-│   │   │   └── layout.tsx
-│   │   └── Template/
-│   │       ├── page.tsx
-│   │       └── types.ts
-│   ├── components/
-│   │   ├── CenterFocus/
+│   │   │   ├── bonus/
+│   │   │   │   └── page.tsx
+│   │   │   ├── shifts/
+│   │   │   │   └── page.tsx
 │   │   │   └── page.tsx
-│   │   ├── Footer/
+│   │   ├── debt/
+│   │   │   ├── customers/
+│   │   │   │   ├── [id]/
+│   │   │   │   └── page.tsx
+│   │   │   ├── payment/
+│   │   │   │   └── page.tsx
+│   │   │   ├── products/
+│   │   │   │   └── page.tsx
+│   │   │   ├── report/
+│   │   │   │   └── page.tsx
+│   │   │   ├── transaction/
+│   │   │   │   └── page.tsx
 │   │   │   └── page.tsx
-│   │   ├── Nav/
+│   │   ├── overview/
 │   │   │   └── page.tsx
-│   │   ├── TimelineItem/
+│   │   ├── quote/
 │   │   │   └── page.tsx
-│   │   └── PageHeader.tsx
-│   ├── features/
-│   │   ├── Template/
-│   │   │   ├── api/
-│   │   │   │   └── template.api.ts
-│   │   │   ├── hooks/
-│   │   │   │   └── useTemplate.ts
-│   │   │   └── types.ts
-│   │   └── TimeKeeping/
-│   │       ├── api/
-│   │       └── hooks/
-│   ├── images/
-│   │   └── ui/
-│   │       ├── api.ts
-│   │       ├── EditModal.tsx
-│   │       ├── ImageItem.tsx
-│   │       ├── ImageList.tsx
-│   │       ├── ImagesPageClient.tsx
-│   │       ├── ShowModal.tsx
-│   │       └── types.ts
-│   ├── lib/
-│   │   └── api.ts
+│   │   └── layout.tsx
 │   ├── login/
 │   │   └── page.tsx
 │   ├── quote/
 │   │   └── page.tsx
-│   ├── templates/
-│   │   └── images/
-│   │       └── page.tsx
+│   ├── template/
+│   │   ├── images/
+│   │   │   └── page.tsx
+│   │   └── page.tsx
 │   ├── favicon.ico
 │   ├── globals.css
 │   ├── layout.tsx
 │   ├── not-found.tsx
 │   └── page.tsx
 ├── components/
+│   ├── shared/
+│   │   ├── CenterFocus.tsx
+│   │   ├── Footer.tsx
+│   │   ├── Nav.tsx
+│   │   ├── PageHeader.tsx
+│   │   └── TimelineItem.tsx
 │   └── ui/
 │       ├── alert-dialog.tsx
 │       ├── badge.tsx
@@ -87,6 +57,63 @@ nextjs-app/
 │       ├── label.tsx
 │       ├── skeleton.tsx
 │       └── textarea.tsx
+├── features/
+│   ├── images/
+│   │   ├── api/
+│   │   │   └── api.ts
+│   │   ├── components/
+│   │   │   ├── EditModal.tsx
+│   │   │   ├── ImageItem.tsx
+│   │   │   ├── ImageList.tsx
+│   │   │   ├── ImagesPageClient.tsx
+│   │   │   └── ShowModal.tsx
+│   │   └── types/
+│   │       └── index.ts
+│   ├── log-work/
+│   │   ├── checkin/
+│   │   │   ├── api/
+│   │   │   ├── components/
+│   │   │   │   ├── AttendanceList.tsx
+│   │   │   │   ├── AttendanceModal.tsx
+│   │   │   │   ├── AttendancePage.tsx
+│   │   │   │   ├── BonusPage.tsx
+│   │   │   │   ├── CheckinPage.tsx
+│   │   │   │   ├── ConfirmDialog.tsx
+│   │   │   │   ├── ShiftCard.tsx
+│   │   │   │   ├── ShiftFormModal.tsx
+│   │   │   │   ├── ShiftModal.tsx
+│   │   │   │   ├── ShiftSection.tsx
+│   │   │   │   └── ShiftsPage.tsx
+│   │   │   ├── types/
+│   │   │   │   └── index.ts
+│   │   │   └── date.ts
+│   │   ├── debt/
+│   │   │   ├── api/
+│   │   │   │   └── debt-api.ts
+│   │   │   ├── components/
+│   │   │   │   ├── CustomerSearchInput.tsx
+│   │   │   │   ├── DebtCustomerDetailPage.tsx
+│   │   │   │   ├── DebtCustomersPage.tsx
+│   │   │   │   ├── DebtHubPage.tsx
+│   │   │   │   ├── DebtPaymentPage.tsx
+│   │   │   │   ├── DebtProductsPage.tsx
+│   │   │   │   ├── DebtReportPage.tsx
+│   │   │   │   └── DebtTransactionPage.tsx
+│   │   │   └── types/
+│   │   │       └── index.ts
+│   │   └── overview/
+│   │       ├── api/
+│   │       └── components/
+│   │           └── OverviewPage.tsx
+│   └── quote/
+│       ├── components/
+│       │   ├── ConfirmDialog.tsx
+│       │   ├── QuoteCard.tsx
+│       │   ├── QuoteFormModal.tsx
+│       │   ├── QuoteManagementPage.tsx
+│       │   └── QuotePage.tsx
+│       └── types/
+│           └── index.ts
 ├── lib/
 │   ├── animations/
 │   │   ├── easing.ts
@@ -94,6 +121,7 @@ nextjs-app/
 │   │   ├── scroll.ts
 │   │   ├── types.ts
 │   │   └── useScrollTo.ts
+│   ├── api.ts
 │   └── utils.ts
 ├── public/
 │   ├── danang1.png
@@ -115,5 +143,6 @@ nextjs-app/
 ├── package.json
 ├── postcss.config.mjs
 ├── README.md
+├── structure-fe.txt
 ├── tsconfig.json
 └── tsconfig.tsbuildinfo
