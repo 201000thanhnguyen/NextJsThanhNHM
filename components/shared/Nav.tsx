@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+
+import { useAuth } from "@/contexts/auth-context";
 
 type NavLinkProps = {
   href: string
@@ -13,9 +15,7 @@ type NavLinkProps = {
 
 function isActiveRoute(pathname: string | null, href: string) {
   if (!pathname) return false
-  // Exact match
   if (pathname === href) return true
-  // Nested routes
   if (pathname.startsWith(href + "/")) return true
   return false
 }
@@ -40,34 +40,22 @@ function NavLink({ href, label, className, onClick }: NavLinkProps) {
   )
 }
 
+function loginHref(pathname: string | null) {
+  const next = pathname && pathname !== "/login" ? pathname : "/"
+  return `/login?next=${encodeURIComponent(next)}`
+}
+
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-  const [authed, setAuthed] = useState<boolean | null>(null);
+  const [open, setOpen] = React.useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const { user, loading, signOut } = useAuth();
 
-  const logworkActive = pathname === "/log-work" || pathname?.startsWith("/log-work/");
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
-        if (!cancelled) setAuthed(res.ok);
-      } catch {
-        if (!cancelled) setAuthed(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [pathname]);
-
-  useEffect(() => {
+  React.useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -82,80 +70,31 @@ export default function Navbar() {
   }, [open]);
 
   async function handleLogout() {
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    } finally {
-      setAuthed(false);
-      setOpen(false);
-      router.push("/");
-      router.refresh();
-    }
+    await signOut();
+    setOpen(false);
+    router.push("/");
+    router.refresh();
   }
+
+  const authed = Boolean(user);
 
   return (
     <nav className="bg-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <div className="flex h-16 items-center justify-between">
 
-          {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-gray-800">
               ThanhNHM
             </Link>
           </div>
 
-          {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-6">
             <NavLink href="/" label="Home" />
             <NavLink href="/quote" label="Quote" />
-            <div className="relative group">
-              <button
-                type="button"
-                className={[
-                  "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  logworkActive
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-700 hover:bg-gray-100",
-                ].join(" ")}
-                aria-current={logworkActive ? "page" : undefined}
-              >
-                LogWork
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-              <div className="invisible absolute left-0 top-full min-w-40 rounded bg-white py-2 shadow-lg ring-1 ring-gray-200 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                <NavLink
-                  href="/log-work/checkin"
-                  label="Checkin"
-                  className="w-full justify-start rounded-none px-4 py-2 text-sm"
-                />
-                <NavLink
-                  href="/log-work/quote"
-                  label="Quote Management"
-                  className="w-full justify-start rounded-none px-4 py-2 text-sm"
-                />
-                <NavLink
-                  href="/log-work/debt"
-                  label="Quản lý nợ"
-                  className="w-full justify-start rounded-none px-4 py-2 text-sm"
-                />
-              </div>
-            </div>
             <NavLink href="/contact" label="Contact" />
 
-            {authed ? (
+            {!loading && authed ? (
               <button
                 type="button"
                 onClick={handleLogout}
@@ -163,17 +102,18 @@ export default function Navbar() {
               >
                 Logout
               </button>
-            ) : (
+            ) : !loading ? (
               <Link
-                href={`/login?next=${encodeURIComponent(pathname ?? "/log-work/checkin")}`}
+                href={loginHref(pathname)}
                 className="rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-800"
               >
                 Login
               </Link>
+            ) : (
+              <span className="text-sm text-gray-500">…</span>
             )}
           </div>
 
-          {/* Mobile menu toggle */}
           <button
             type="button"
             aria-expanded={open}
@@ -208,7 +148,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile: overlay + panel */}
       {open ? (
         <div className="md:hidden" role="dialog" aria-modal="true" aria-label="Menu điều hướng">
           <button
@@ -236,35 +175,6 @@ export default function Navbar() {
                   onClick={() => setOpen(false)}
                   className="flex min-h-12 items-center rounded-xl px-4 text-[15px]"
                 />
-
-                <div className="my-1 border-t border-gray-100" />
-
-                <p className="px-4 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-                  LogWork
-                </p>
-                <div className="ml-2 flex flex-col gap-0.5 border-l-2 border-blue-100 pl-3">
-                  <NavLink
-                    href="/log-work/checkin"
-                    label="Checkin"
-                    onClick={() => setOpen(false)}
-                    className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
-                  />
-                  <NavLink
-                    href="/log-work/quote"
-                    label="Quote Management"
-                    onClick={() => setOpen(false)}
-                    className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
-                  />
-                  <NavLink
-                    href="/log-work/debt"
-                    label="Quản lý nợ"
-                    onClick={() => setOpen(false)}
-                    className="flex min-h-11 items-center rounded-lg px-3 text-[15px]"
-                  />
-                </div>
-
-                <div className="my-1 border-t border-gray-100" />
-
                 <NavLink
                   href="/contact"
                   label="Contact"
@@ -273,7 +183,7 @@ export default function Navbar() {
                 />
 
                 <div className="mt-2 border-t border-gray-100 pt-3">
-                  {authed ? (
+                  {!loading && authed ? (
                     <button
                       type="button"
                       onClick={handleLogout}
@@ -281,15 +191,15 @@ export default function Navbar() {
                     >
                       Logout
                     </button>
-                  ) : (
+                  ) : !loading ? (
                     <Link
-                      href={`/login?next=${encodeURIComponent(pathname ?? "/log-work/checkin")}`}
+                      href={loginHref(pathname)}
                       onClick={() => setOpen(false)}
                       className="flex min-h-12 w-full items-center justify-center rounded-xl bg-gray-900 px-4 text-[15px] font-semibold text-white transition-colors hover:bg-gray-800 active:bg-gray-950"
                     >
                       Login
                     </Link>
-                  )}
+                  ) : null}
                 </div>
               </nav>
             </div>

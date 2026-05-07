@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/shared/Nav";
+import { AppChrome } from "@/components/shared/AppChrome";
+import { AppProviders } from "@/components/providers/AppProviders";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -29,8 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
-        {children}
+        <AppProviders>
+          <AppChrome>{children}</AppChrome>
+        </AppProviders>
         <Toaster
           richColors
           position="top-right"

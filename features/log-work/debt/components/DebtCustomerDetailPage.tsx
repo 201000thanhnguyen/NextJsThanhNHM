@@ -150,7 +150,7 @@ export default function CustomerDebtDetailPage() {
             title={customer?.name || "Khách hàng"}
             description="Theo dõi giao dịch, thanh toán và mức nợ lũy kế (ước tính trên timeline)."
             icon={<UserRound className="h-5 w-5 text-neutral-700" />}
-            backHref="/log-work/debt/customers"
+            backHref="/admin/log-work/debt-management/customers"
             backLabel="Danh sách khách"
             action={
               customer ? (
@@ -291,7 +291,7 @@ export default function CustomerDebtDetailPage() {
                       title="Thêm giao dịch"
                       aria-label="Thêm giao dịch"
                       onClick={() =>
-                        router.push(`/log-work/debt/transaction?customerId=${encodeURIComponent(id)}`)
+                        router.push(`/admin/log-work/debt-management/transaction?customerId=${encodeURIComponent(id)}`)
                       }
                     >
                       <FilePlus className="h-4 w-4" aria-hidden />
@@ -341,7 +341,7 @@ export default function CustomerDebtDetailPage() {
                       title="Thêm thanh toán"
                       aria-label="Thêm thanh toán"
                       onClick={() =>
-                        router.push(`/log-work/debt/payment?customerId=${encodeURIComponent(id)}`)
+                        router.push(`/admin/log-work/debt-management/payment?customerId=${encodeURIComponent(id)}`)
                       }
                     >
                       <Banknote className="h-4 w-4" aria-hidden />

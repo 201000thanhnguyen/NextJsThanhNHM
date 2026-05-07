@@ -29,7 +29,7 @@ export default function DebtHubPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="h-11 min-w-[5.5rem] shrink-0 text-base">
-                  <Link href="/log-work/debt/transaction">Open</Link>
+                  <Link href="/admin/log-work/debt-management/transaction">Open</Link>
                 </Button>
               </div>
             </Card>
@@ -44,7 +44,7 @@ export default function DebtHubPage() {
                   <p className="mt-1 text-sm text-neutral-600">Tìm kiếm, tạo mới và mở chi tiết công nợ.</p>
                 </div>
                 <Button asChild variant="outline" className="h-11 min-w-[5.5rem] shrink-0 text-base">
-                  <Link href="/log-work/debt/customers">Open</Link>
+                  <Link href="/admin/log-work/debt-management/customers">Open</Link>
                 </Button>
               </div>
             </Card>
@@ -59,7 +59,7 @@ export default function DebtHubPage() {
                   <p className="mt-1 text-sm text-neutral-600">Gợi ý tên và giá mặc định — giá giao dịch luôn do bạn nhập.</p>
                 </div>
                 <Button asChild variant="outline" className="h-11 min-w-[5.5rem] shrink-0 text-base">
-                  <Link href="/log-work/debt/products">Open</Link>
+                  <Link href="/admin/log-work/debt-management/products">Open</Link>
                 </Button>
               </div>
             </Card>
@@ -76,7 +76,7 @@ export default function DebtHubPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="h-11 min-w-[5.5rem] shrink-0 text-base">
-                  <Link href="/log-work/debt/payment">Open</Link>
+                  <Link href="/admin/log-work/debt-management/payment">Open</Link>
                 </Button>
               </div>
             </Card>
@@ -93,7 +93,7 @@ export default function DebtHubPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="h-11 min-w-[5.5rem] shrink-0 text-base">
-                  <Link href="/log-work/debt/report">Open</Link>
+                  <Link href="/admin/log-work/debt-management/report">Open</Link>
                 </Button>
               </div>
             </Card>

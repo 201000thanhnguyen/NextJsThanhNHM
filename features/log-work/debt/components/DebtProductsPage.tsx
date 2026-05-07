@@ -107,7 +107,7 @@ export default function DebtProductsPage() {
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
       <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <Button asChild variant="ghost" className="mb-4 h-11 gap-2 px-2 text-base">
-          <Link href="/log-work/debt">
+          <Link href="/admin/log-work/debt-management">
             <ArrowLeft className="h-4 w-4" />
             Trang chủ nợ
           </Link>

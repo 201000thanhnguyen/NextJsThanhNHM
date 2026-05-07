@@ -29,7 +29,7 @@ export default function CheckinPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="shrink-0">
-                  <Link href="/log-work/checkin/shifts">Open</Link>
+                  <Link href="/admin/log-work/shifts">Open</Link>
                 </Button>
               </div>
             </Card>
@@ -46,7 +46,7 @@ export default function CheckinPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="shrink-0">
-                  <Link href="/log-work/checkin/attendance">Open</Link>
+                  <Link href="/admin/log-work/attendance">Open</Link>
                 </Button>
               </div>
             </Card>
@@ -63,7 +63,7 @@ export default function CheckinPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="shrink-0">
-                  <Link href="/log-work/checkin/overview">Open</Link>
+                  <Link href="/admin/log-work/overview">Open</Link>
                 </Button>
               </div>
             </Card>
@@ -80,7 +80,7 @@ export default function CheckinPage() {
                   </p>
                 </div>
                 <Button asChild variant="outline" className="shrink-0">
-                  <Link href="/log-work/checkin/bonus">Open</Link>
+                  <Link href="/admin/log-work/bonus">Open</Link>
                 </Button>
               </div>
             </Card>

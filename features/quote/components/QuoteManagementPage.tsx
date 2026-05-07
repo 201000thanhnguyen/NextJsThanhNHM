@@ -141,7 +141,7 @@ export default function Page() {
             icon={<QuoteIcon className="h-5 w-5 text-neutral-700" />}
             breadcrumb={
               <>
-                <Link href="/log-work/checkin" className="hover:text-neutral-700">
+                <Link href="/admin/log-work/checkin" className="hover:text-neutral-700">
                   Log work
                 </Link>{" "}
                 <span className="text-neutral-400">/</span>{" "}
